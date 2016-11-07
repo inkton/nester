@@ -1,4 +1,0 @@
-build - run the ./build.sh script
-debug - client side, print and echo trace msg from python. debug using pudb on server side
-config - /etc/lshell.conf
-

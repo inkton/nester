@@ -1,0 +1,5 @@
+# source me in order to update your python path
+# and test using the local nester files
+# this is useful when you have multiple nester installations
+
+export PYTHONPATH=$PWD/

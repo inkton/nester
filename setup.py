@@ -41,9 +41,7 @@ if __name__ == '__main__':
           package_dir={'nester': 'nester'},
           packages=['nester'],
           data_files=[('/etc', ['etc/nester.conf']),
-                      ('share/doc/nester', ['README.md',
-                                            'COPYING',
-                                            'CHANGES']),
+                      ('share/doc/nester', ['README.md']),
                       ('share/man/man1/', ['man/nester.1'])],
           classifiers=[
             'Development Status :: 5 - Production/Stable',

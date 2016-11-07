@@ -1,6 +1,4 @@
-include COPYING
 include README.md
-include CHANGES
 include etc/nester.conf
 include man/nester.1
 include MANIFEST.in

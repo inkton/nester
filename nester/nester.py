@@ -79,6 +79,8 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
 import errno, os, sys
+from datetime import datetime, date, time
+from subprocess import Popen, PIPE, STDOUT
 import argparse
 
 class Nester(object):
@@ -93,7 +95,30 @@ class Nester(object):
         
         if args.init is not None:
             self.start()
- 
+            self.end_cmd()
+	
+        self.secure_workarea()
+
+    def log(self, message, echo_this=False):
+	line_out = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ---> " + message + '\n';
+        outfile = open('/tmp/nester.log', 'a');
+	if echo_this:
+           print(line_out)
+	outfile.write(line_out)
+        outfile.close()
+
+    def end_cmd(self, message=None):
+	line_out = '\n';
+        if message:
+           line_out += message + '\n';
+	line_out += 'OK';
+        print(line_out)
+	self.log(line_out);
+
+    def os_exec(self, cmd):
+        proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+        self.log(proc.stdout.read())	
+
     def start(self):
         self.remove_owner()
         self.create_owner()
@@ -101,40 +126,53 @@ class Nester(object):
         self.setup_git()
 
     def remove_owner(self):
-        os.system("userdel --force --remove "+os.environ['NEST_CONTACT_ID'])
-        os.system("groupdel tree")
-        os.system("sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.d/99-forest-sudoers &>/dev/null ")
-        os.system("rm -rf /home/"+os.environ['NEST_CONTACT_ID'])
+	self.log("removing current user")
+        self.os_exec(["userdel --force --remove "+os.environ['NEST_CONTACT_ID']])
+        self.os_exec(["sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.D/99-forest-sudoers"])
+        self.os_exec(["rm -rf /home/"+os.environ['NEST_CONTACT_ID']])
+	self.log("removing group")
+        self.os_exec(["groupdel tree"])
 
     def create_owner(self):
-        os.system("groupadd --gid 1008 tree")
-        os.system("useradd --uid "+os.environ['NEST_CONTACT_ID']+" --create-home --gid 1008 "+os.environ['NEST_CONTACT_ID'])
-        os.system("touch /etc/sudoers.d/99-forest-sudoers")
-        os.system("echo '"+os.environ['NEST_CONTACT_ID']+"	ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
-        os.system("mkdir /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
-        os.system("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
-        os.system("cd /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/ && ssh-keygen -y -f id_rsa > id_rsa.pub")
-        os.system("ssh-keyscan -t rsa "+os.environ['NEST_APP_TAG']+".nestapp.yt > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
-        os.system("printf 'Host nest\n\tHostName "+os.environ['NEST_APP_TAG']+".nestapp.yt\n\tUser "+os.environ['NEST_CONTACT_ID']+"\n' > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/config")
-        os.system("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
-        os.system("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
-        os.system("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
+	self.log("add tree group")
+        self.os_exec("groupadd --gid 1008 tree")
+	self.log("add current user")
+        self.os_exec("useradd --uid "+os.environ['NEST_CONTACT_ID']+" --create-home --gid 1008 "+os.environ['NEST_CONTACT_ID'])
+        self.os_exec("touch /etc/sudoers.d/99-forest-sudoers")
+        self.os_exec("echo '"+os.environ['NEST_CONTACT_ID']+"	ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
+        self.os_exec("mkdir /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
+        self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
+        self.os_exec("cd /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/ && ssh-keygen -y -f id_rsa > id_rsa.pub")
+        self.os_exec("ssh-keyscan -t rsa "+os.environ['NEST_APP_TAG']+".nestapp.yt > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
+        self.os_exec("printf 'Host nest\n\tHostName "+os.environ['NEST_APP_TAG']+".nestapp.yt\n\tUser "+os.environ['NEST_CONTACT_ID']+"\n' > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/config")
+        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
+        self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
+        self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
+
+    def secure_workarea(self):
+	self.log("secure workarea")
+        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
+        self.os_exec("chmod -R 755 /var/app ")
 
     def setup_workarea(self):
-        os.system("touch /var/app/.push_excludes")
-        os.system("touch /var/app/.pull_excludes")
-        os.system("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
-        os.system("chmod -R 755 /var/app ")
+	self.log("setup workarea")
+        self.os_exec("touch /var/app/.push_excludes")
+        self.os_exec("touch /var/app/.pull_excludes")
+
+    def setup_git_for_user(self, user):
+	self.log("setup git for user " + user)
+        self.os_exec("sudo su - "+ user +" -c \"git config --global user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
+        self.os_exec("sudo su - "+ user +" -c \"git config --global user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.co checkout\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.br branch\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.ci commit\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.st status\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.unstage 'reset HEAD --'\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.last 'log -1 HEAD'\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global core.autocrlf false\"")
+        self.os_exec("sudo su - "+ user +" -c \"git config --global push.default simple\"")
 
     def setup_git(self):
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.co checkout\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.br branch\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.ci commit\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.st status\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.unstage 'reset HEAD --'\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global alias.last 'log -1 HEAD'\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global core.autocrlf false\"")
-        os.system("sudo su - "+os.environ['NEST_CONTACT_ID']+" -c \"git config --global push.default simple\"")
-
+	self.log("setup git")
+    	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
+        self.os_exec("cp /home/"+ os.environ['NEST_CONTACT_ID'] +"/.gitconfig /root/")

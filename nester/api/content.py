@@ -31,7 +31,6 @@
     nester.py --version
     nester.py permit (allow <user> <secret> | info | deny)
     nester.py user (info | update [] )
-B
     nester.py forest (list | info | enter)    
     nester.py nest (list (languages|frameworks|apps|databases) |
                     create name with --platform (language|framework|app)  [--user-first-name=<fname> --user-surname=<sname> --user-email=<email> --domain=<domain> --instances=<inst>] --db (mysql | postgress| mongodb)
@@ -83,31 +82,55 @@ import errno, os, sys
 import argparse
 
 from datetime import datetime, date, time
-from api.thing import Thing
-from api.app import App
-from api.content import Content
+from subprocess import Popen, PIPE, STDOUT
 
-class Nester(object):
-    
-    def __init__(self):
-        sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-        parser = argparse.ArgumentParser(prog='nester')
-        parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
-        parser.add_argument('-l', '--log', type=str, required=False, help='The output log file')
-        subparsers = parser.add_subparsers(dest='command', help='sub commands')
-	
-	thing = Thing()
+from thing import Thing
 
-	app = App(thing)
-        app.parse_command(subparsers)
+class Content(Thing):
 
-	content = Content(thing)
-        content.parse_command(subparsers)
+    def __init__(self, thing):
+        self._thing = thing
 
-        args = parser.parse_args()
+    def parse_command(self, subparsers):
+        cmd_parser = subparsers.add_parser('content', help='Manage current app\'s contents')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='content_command', help='content commands')
 
-	if app.exec_command(args) == True:
-		return
-	if content.exec_command(args) == True:
-		return
+        push_cmd = app_cmd_parsers.add_parser('push', help='Push content to the remote live site')
+        push_cmd.add_argument('-t', '--timeout', type=int, default=30, required=False, help='The timeout')
+
+        pull_cmd = app_cmd_parsers.add_parser('pull', help='Pull content from the remote live site')
+        pull_cmd.add_argument('-t', '--timeout', type=int, default=30, required=False, help='The timeout')
+
+        app_cmd_parsers.add_parser('edit', help='Edit content on the remote live site')
+        #permit_subparserss.add_parser('info',  help='Show current permit')
+        #permit_subparserss.add_parser('deny',  help='Deny current user to enter the forest')
+
+    def exec_command(self, args):
+        self.set_log(args.log)
+        cmd_handled = False
+        if args.command == 'content':
+            self.log("handle content command")
+            cmd_handled = True
+            if (args.content_command == 'push'):
+               self.push(args.timeout)
+	    elif (args.content_command == 'pull'):
+               self.pull(args.timeout)
+	    elif (args.content_command == 'edit'):
+               self.edit()
+            else:
+                cmd_handled = False
+            self.end_cmd()
+        return cmd_handled
+   
+    def push(self, timeout):
+	self.log("push content up")
+        self.os_exec("/usr/bin/rsync -avzrh --timeout=" + str(timeout) + " --progress /var/app nest:/var")
+
+    def pull(self, timeout):
+	self.log("pull content up")
+        self.os_exec("/usr/bin/rsync -avzrh --timeout=" + str(timeout) + " --progress nest:/var/app /var")
+
+    def edit(self):
+	self.log("edit content")
+	os.system("ssh nest")
 

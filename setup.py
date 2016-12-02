@@ -39,7 +39,7 @@ if __name__ == '__main__':
           platforms='UNIX',
           scripts=['bin/nester'],
           package_dir={'nester': 'nester'},
-          packages=['nester'],
+          packages=['nester', 'nester.api'],
           data_files=[('/etc', ['etc/nester.conf']),
                       ('share/doc/nester', ['README.md']),
                       ('share/man/man1/', ['man/nester.1'])],

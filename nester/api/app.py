@@ -79,56 +79,42 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
 import errno, os, sys
-from datetime import datetime, date, time
-from subprocess import Popen, PIPE, STDOUT
 import argparse
 
-class App(Cloud):
-    
-    def __init__(self, ):
-        sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-        self.parser = argparse.ArgumentParser(prog='nester')
-        self.parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
-      
-        sub_cmd_parsers = self.parser.add_subparsers(help='sub commands')
- 
-        # app command
-        permit_cmd_parser = sub_cmd_parsers.add_parser('app', help='Manage a nest.yt app')
-        permit_sub_cmd_parsers = permit_cmd_parser.add_subparsers(dest='app_command')
+from datetime import datetime, date, time
+from subprocess import Popen, PIPE, STDOUT
 
-        permit_allow_cmd_parser = permit_sub_cmd_parsers.add_parser('attach',  help='Attach to the current app in the environment')
+from thing import Thing
+
+class App(Thing):
+
+    def __init__(self, thing):
+        self._thing = thing
+
+    def parse_command(self, subparsers):
+        cmd_parser = subparsers.add_parser('app', help='Manage a nest.yt app')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='app commands')
+
+        app_cmd_parsers.add_parser('attach', help='Attach to the current app in the environment')
+
         #permit_allow_cmd_parser.add_argument('user', type=str, help='Your username')
         #permit_allow_cmd_parser.add_argument('secret', type=str, help='The secret shared between you and the forest admin')
 
-        #permit_sub_cmd_parsers.add_parser('info',  help='Show current permit')
-        #permit_sub_cmd_parsers.add_parser('deny',  help='Deny current user to enter the forest')
+        #permit_subparserss.add_parser('info',  help='Show current permit')
+        #permit_subparserss.add_parser('deny',  help='Deny current user to enter the forest')
  
-        args = self.parser.parse_args()
-
+    def exec_command(self, args):
+	self.set_log(args.log)
+        cmd_handled = False
         if args.command == 'app':
-            self.handle_app_command(args)
-         
-    def log(self, message, echo_this=False):
-	line_out = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ---> " + message + '\n';
-        outfile = open('/tmp/nester.log', 'a');
-	if echo_this:
-           print(line_out)
-	outfile.write(line_out)
-        outfile.close()
-
-    def end_cmd(self, message=None):
-	line_out = '\n';
-        if message:
-           line_out += message + '\n';
-	line_out += 'OK';
-        print(line_out)
-	self.log(line_out);
-        self.secure_workarea()
-
-    def os_exec(self, cmd):
-        proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-        self.log(cmd)	
-        self.log("result - " + proc.stdout.read())	
+ 	    self.log("handle app command")
+            cmd_handled = True
+            if (args.app_command == 'attach'):
+               self.attach()
+            else:
+            	cmd_handled = False
+            self.end_cmd()
+        return cmd_handled
 
     def attach(self):
         self.remove_owner()
@@ -161,11 +147,6 @@ class App(Cloud):
         self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
 
-    def secure_workarea(self):
-	self.log("secure workarea")
-        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
-        self.os_exec("chmod -R 755 /var/app ")
-
     def setup_workarea(self):
 	self.log("setup workarea")
         self.os_exec("touch /var/app/.push_excludes")
@@ -189,22 +170,5 @@ class App(Cloud):
     	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
         self.os_exec("cp /home/"+ os.environ['NEST_CONTACT_ID'] +"/.gitconfig /root/")
         self.os_exec("cp -R /home/"+ os.environ['NEST_CONTACT_ID'] +"/.ssh /root/")
-
-    def handle_app_command(self):
-	self.log("handle app command")
-
-        if (args.app_command == 'allow'):
-            self.permit.set(args.user, args.secret)
-            self.load()
-        elif (args.permit_command == 'info'):
-            self.display_info(str(self.permit))
-        elif (args.permit_command == 'deny'):
-            self.permit.reset()
-
-        self.util.save_object('/permit', self.permit)
-        self.status()
-
-        self.attach()
-        self.end_cmd()
 
 

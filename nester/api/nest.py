@@ -14,8 +14,8 @@ from daemonize import Daemonize
 
 from thing import Thing
 
-def start_nest():
-    os.system("NEST_OPERATION=start /var/app/app.nest")
+def run_nest():
+   os.system("NEST_OPERATION=start /var/app/app.nest")
 
 class Nest(Thing):
 
@@ -46,12 +46,17 @@ class Nest(Thing):
    
     def up(self):
 	self.log("run nest")
-	daemon = Daemonize(app="nest", pid="/tmp/nest.pid", action=start_nest)
+        daemon = Daemonize(app="nest", pid="/tmp/nest.pid", action=run_nest)
         daemon.start()
 
     def down(self):
 	self.log("stop nest")
-	pid = -999
-	with open('/tmp/nest.pid', 'r') as content_file:
-    		pid = int(content_file.read())
-	os.kill(pid, signal.SIGTERM)
+        try:
+	    pid=None
+	    with open('/tmp/nest.pid', 'r') as content_file:
+		pid = int(content_file.read())
+	    os.killpg(os.getpgid(pid), 9)
+            sleep(.1)
+        except:
+	      pass
+

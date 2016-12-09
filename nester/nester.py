@@ -46,6 +46,7 @@ class Nester(object):
         nest.parse_command(subparsers)
 
         args = parser.parse_args()
+	print('\n')
 
 	if app.exec_command(args) == True:
 		return

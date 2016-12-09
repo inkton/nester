@@ -22,6 +22,7 @@ class FailedValidation(Exception):
 class Thing(object):
 
     logfile = None
+    home = '{0}/.forest-keeper'.format(os.path.expanduser("~"))
 
     def __init__(self, logfile=None):
         self.apiHost = ''
@@ -60,10 +61,6 @@ class Thing(object):
         self.os_exec("chmod -R 755 /var/app ")
 
     @abc.abstractmethod
-    def draw_table_col_header(self, table):
-        pass
-
-    @abc.abstractmethod
     def draw_table_col_width(self, table):
         pass
 
@@ -80,7 +77,11 @@ class Thing(object):
         pass
 
     @abc.abstractmethod
-    def draw_table_row_add(self, table, tag):
+    def get_table_col_header(self):
+        pass
+
+    @abc.abstractmethod
+    def get_table_row_data(self, tag):
         pass
 
     def draw_table(self, subject):
@@ -91,13 +92,15 @@ class Thing(object):
 	self.draw_table_col_align(table)
 	self.draw_table_col_valign(table)
 	self.draw_table_col_width(table)
-	self.draw_table_col_header(table)
 
-	for filename in os.listdir(directory):
+	rows = []
+	rows.append(self.get_table_col_header())
+
+	for filename in os.listdir(self.home + '/' + subject):
 	    if filename.endswith(".json"): 
                 file_parts = filename.split('.')
-                self.draw_table_row_add(table, file_parts[0])
+                rows.append(self.get_table_row_data(file_parts[0]))
        		continue
-
+	table.add_rows( rows )
         print(table.draw())
 

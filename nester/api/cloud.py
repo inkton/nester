@@ -19,7 +19,6 @@ class Cloud(Thing):
     protocol = 'https://'
     host = 'api.nest.yt'
     base_uri = '/'
-    home = '{0}/.forest-keeper'.format(os.path.expanduser("~"))
     logfile = None
     auth = None
 
@@ -142,7 +141,7 @@ class Cloud(Thing):
         filter['token'] = self.auth.token
         response = requests.get(
           self.get_url(subject),
-                verify=False,
+                verify = False,
                 params = filter)
         return self.get_data(response)
 
@@ -153,9 +152,21 @@ class Cloud(Thing):
         list = data[subject]
 	for object in list:
             create_entity = self.new_copy(object)
-            path = self.home + '/' + subject + '/' +  create_entity.tag + '.json'
-            open(path, 'w').write(jsonpickle.encode(create_entity))
+            path = self.home + '/' + subject + '/' +  create_entity.tag
+            self.save_object(path, create_entity)
 	return True
+
+    def load_object(self, path, default):
+	obj_path = self.home + path + '.json'
+        if not os.path.exists(obj_path):
+            open(obj_path, 'w').write(jsonpickle.encode(default))
+            return default
+        else:
+            saved = jsonpickle.decode(open(obj_path).read())
+            default.__dict__.update(saved.__dict__)
+	
+    def save_object(self, path, object):
+        open(self.home + path + '.json', 'w').write(jsonpickle.encode(object))
 
     def load_server_dictionary(self, permit, path, obj_type):
         object_path = path
@@ -206,20 +217,6 @@ class Cloud(Thing):
                 self.check_result(response.status_code)
 
         return list
-
-    def load_object(self, path, default):
-        if not os.path.exists(self.home + path):
-            open(self.home + path, 'w').write(jsonpickle.encode(default))
-            return default
-        else:
-            #a = open(self.home + path).read()
-            #return jsonpickle.decode(a)
-            #return jsonpickle.decode(open(self.home + path).read())
-            saved = jsonpickle.decode(open(self.home + path).read())
-            default.__dict__.update(saved.__dict__)
-	
-    def save_object(self, path, object):
-        open(self.home + path , 'w').write(jsonpickle.encode(object))
 
     def clear_list(self, path):
         object_path = path

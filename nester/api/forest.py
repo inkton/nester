@@ -19,6 +19,7 @@ class Forest(Cloud):
     tag = None
     name = None   
     kind = None   
+    continent = None
 
     def __init__(self, auth, tag=None):
         super(Forest, self).__init__(auth)
@@ -58,6 +59,7 @@ class Forest(Cloud):
     def list(self):
         try:
             self.cache_list("forests")
+            self.draw_table("forests")
 	except Exception as e:
             print(e.value)
 
@@ -67,23 +69,24 @@ class Forest(Cloud):
     def save(self):
         self.save_object('/forests/' + self.tag, self)
 
-    def draw_table_col_header(self, table):
-        table.add_rows([["tag",  "kind", "name"]])
-
     def draw_table_col_width(self, table):
-        table.set_cols_width([10, 25, 30])
+        table.set_cols_width([20, 10, 30, 10])
 
     def draw_table_col_align(self, table):
-        table.set_cols_align(["c", "r", "r"])
+        table.set_cols_align(["l", "r", "r", "r"])
 
     def draw_table_col_valign(self, table):
-        table.set_cols_align(["m", "m", "m"])
+        table.set_cols_align(["m", "m", "m", "m"])
 
     def draw_table_col_dtype(self, table):
-        table.set_cols_align(["t", "t", "t"])
+        table.set_cols_align(["t", "t", "t", "t"])
 
-    def draw_table_row_add(self, table, tag):
-        print_obj = Forest(auth, tag)
-        table.add_rows([[ print_obj.tag, print_obj.kind, print_obj.name]])
+    def get_table_col_header(self):
+        return ["tag", "kind", "name", "continent"]
+
+    def get_table_row_data(self, tag):
+        print_obj = Forest(self.auth, tag)
+        print_obj.load()
+        return [ print_obj.tag, print_obj.kind, print_obj.name, print_obj.continent ]
 
 

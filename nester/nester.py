@@ -12,7 +12,10 @@ import argparse
 from datetime import datetime, date, time
 
 from api.thing import Thing
+from api.auth import Auth
+from api.cloud import Cloud
 from api.app import App
+from api.forest import Forest
 from api.content import Content
 from api.nest import Nest
 
@@ -24,21 +27,29 @@ class Nester(object):
         parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
         parser.add_argument('-l', '--log', type=str, required=False, help='The output log file')
         subparsers = parser.add_subparsers(dest='command', help='sub commands')
-	
-	thing = Thing()
 
-	app = App(thing)
+	auth = Auth(os.environ['NEST_CONTACT_EMAIL'])
+	if auth.load():
+           auth.get_token()
+           auth.save()
+	
+	app = App(auth)
         app.parse_command(subparsers)
 
-	content = Content(thing)
+	forest = Forest(auth)
+        forest.parse_command(subparsers)
+
+	content = Content(auth)
         content.parse_command(subparsers)
 
-	nest = Nest(thing)
+	nest = Nest(auth)
         nest.parse_command(subparsers)
 
         args = parser.parse_args()
 
 	if app.exec_command(args) == True:
+		return
+	if forest.exec_command(args) == True:
 		return
 	if content.exec_command(args) == True:
 		return

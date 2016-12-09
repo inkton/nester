@@ -84,12 +84,18 @@ import argparse
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 
-from thing import Thing
+from cloud import Cloud
 
-class Content(Thing):
+class Content(Cloud):
 
-    def __init__(self, thing):
-        self._thing = thing
+    def __init__(self, auth):
+        super(Cloud, self).__init__(auth)
+        if not os.path.exists(self.home):
+            try:
+                os.makedirs(self.home + '/contents')
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def parse_command(self, subparsers):
         cmd_parser = subparsers.add_parser('content', help='Manage current app\'s contents')

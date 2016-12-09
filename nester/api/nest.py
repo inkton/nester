@@ -12,18 +12,25 @@ from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 from daemonize import Daemonize
 
-from thing import Thing
+from cloud import Cloud
 
 def run_nest():
    os.system("NEST_OPERATION=start /var/app/app.nest")
 
-class Nest(Thing):
+class Nest(Cloud):
 
-    def __init__(self, thing):
-        self._thing = thing
+    def __init__(self, auth):
+        super(Cloud, self).__init__(auth)
+        if not os.path.exists(self.home):
+            try:
+                os.makedirs(self.home + '/nests')
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise FailedValidation('Unable to create settings directory ' + self.home)
+
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('nest', help='Manage the nest')
+        cmd_parser = subparsers.add_parser('nest', help='Manage an app nest')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='nest_command', help='nest commands')
 
         app_cmd_parsers.add_parser('up', help='Launch the nest')

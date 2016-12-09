@@ -1,10 +1,10 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) Inkton 2016 <thebird@nest.yt>
-#
+#  Copyright (C) Inkton 2016 <thebird@nest.yt>#
 ## -*- python -*-
-# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 import errno, os, sys
 import argparse
@@ -12,12 +12,20 @@ import argparse
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 
-from thing import Thing
+from thing import FailedValidation
+from cloud import Cloud
+from auth import Auth
 
-class App(Thing):
+class App(Cloud):
 
-    def __init__(self, thing):
-        self._thing = thing
+    def __init__(self, auth):
+        super(Cloud, self).__init__(auth)
+        if not os.path.exists(self.home):
+            try:
+                os.makedirs(self.home + '/apps')
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def parse_command(self, subparsers):
         cmd_parser = subparsers.add_parser('app', help='Manage a nest.yt app')
@@ -25,8 +33,15 @@ class App(Thing):
 
         app_cmd_parsers.add_parser('attach', help='Attach to the current app in the environment')
 
-        #permit_allow_cmd_parser.add_argument('user', type=str, help='Your username')
-        #permit_allow_cmd_parser.add_argument('secret', type=str, help='The secret shared between you and the forest admin')
+        allow_cmd = app_cmd_parsers.add_parser('allow', help='Allow permission to update the app')
+	allow_cmd.add_argument('-p', '--password', type=str, help='The password')
+
+        revoke_cmd = app_cmd_parsers.add_parser('revoke', help='Revoke permission to update the app')
+
+        #permit_cmd_allow = permit_cmd.add_subparsers(dest='allow_command', help='Allow permission')
+        #permit_cmd_allow.add_argument('password', type=str, help='The password')
+
+        #permit_cmd.add_argument('revoke', type=str, help='Revoke permission')
 
         #permit_subparserss.add_parser('info',  help='Show current permit')
         #permit_subparserss.add_parser('deny',  help='Deny current user to enter the forest')
@@ -39,6 +54,10 @@ class App(Thing):
             cmd_handled = True
             if (args.app_command == 'attach'):
                self.attach()
+            elif (args.app_command == 'allow'):
+               self.allow(args.password)
+            elif (args.app_command == 'revoke'):
+               self.revoke()
             else:
             	cmd_handled = False
             self.end_cmd()
@@ -51,6 +70,21 @@ class App(Thing):
         self.setup_git()	
         self.os_exec("/bin/bash /usr/local/tree/nest/utils/create")
         print "App attached. Re-start the container to begin"
+
+    def allow(self, password):
+        try:
+            auth = Auth(os.environ['NEST_CONTACT_EMAIL'], password)
+            auth.get_token()
+            auth.save()
+	except Exception as e:
+            print(e.value)
+
+    def revoke(self):
+        try:
+            auth = Auth(os.environ['NEST_CONTACT_EMAIL'], None)
+            auth.save()
+	except Exception as e:
+            print(e.value)
 
     def remove_owner(self):
 	self.log("removing current user")

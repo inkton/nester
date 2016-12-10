@@ -14,79 +14,78 @@ from daemonize import Daemonize
 
 from cloud import Cloud
 
-class Forest(Cloud):
+class Tree(Cloud):
      
     tag = None
     name = None   
-    kind = None   
-    continent = None
 
     def __init__(self, auth, tag=None):
-        super(Forest, self).__init__(auth)
+        super(Tree, self).__init__(auth)
 
 	self.tag = tag
 
         try:
-            os.makedirs(self.home + '/forests')
+            os.makedirs(self.home + '/trees')
         except OSError as exception:
 	    if exception.errno != errno.EEXIST:
                 raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def new_copy(self, object):
-        new_entity = Forest(self.auth) 
+        new_entity = Tree(self.auth) 
 	new_entity.__dict__.update(object)
         return new_entity
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('forests', help='Manage forests')
-        app_cmd_parsers = cmd_parser.add_subparsers(dest='forest_command', help='Forest commands')
+        cmd_parser = subparsers.add_parser('trees', help='Manage trees')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='tree_command', help='Tree commands')
 
-        app_cmd_parsers.add_parser('list', help='List forests')
+        list_cmd = app_cmd_parsers.add_parser('list', help='List trees')    
+        list_cmd.add_argument('-f', '--forest', type=str, required=True, help='Forest id or tag')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'forests':
-            self.log("handle forest command")
+        if args.command == 'trees':
+            self.log("handle tree command")
             cmd_handled = True
-            if (args.forest_command == 'list'):
-               self.list()
+            if (args.tree_command == 'list'):
+               self.list(args.forest)
 	    else:
                cmd_handled = False
             self.end_cmd()
         return cmd_handled
 
-    def list(self):
+    def list(self, forest_id):
         try:
-            self.cache_list("forests")
-            self.draw_table("forests")
+            self.cache_list("forests/{0}/trees".format(forest_id), 'trees')
+            self.draw_table("trees")
 	except Exception as e:
             print(e)
 
     def load(self):
-	self.load_object('/forests/' + self.tag, self)
+	self.load_object('/trees/' + self.tag, self)
 
     def save(self):
-        self.save_object('/forests/' + self.tag, self)
+        self.save_object('/trees/' + self.tag, self)
 
     def draw_table_col_width(self, table):
-        table.set_cols_width([20, 10, 30, 10])
+        table.set_cols_width([20, 30])
 
     def draw_table_col_align(self, table):
-        table.set_cols_align(["l", "r", "r", "r"])
+        table.set_cols_align(["l", "r"])
 
     def draw_table_col_valign(self, table):
-        table.set_cols_align(["m", "m", "m", "m"])
+        table.set_cols_align(["m", "m"])
 
     def draw_table_col_dtype(self, table):
-        table.set_cols_align(["t", "t", "t", "t"])
+        table.set_cols_align(["t", "t"])
 
     def get_table_col_header(self):
-        return ["tag", "kind", "name", "continent"]
+        return ["tag", "name"]
 
     def get_table_row_data(self, tag):
-        print_obj = Forest(self.auth, tag)
+        print_obj = Tree(self.auth, tag)
         print_obj.load()
-        return [ print_obj.tag, print_obj.kind, print_obj.name, print_obj.continent ]
+        return [ print_obj.tag, print_obj.name ]
 
 

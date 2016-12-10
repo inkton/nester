@@ -17,7 +17,7 @@ class FailedValidation(Exception):
        self.value = value
 
    def __str__(self):
-      return repr(self.value)
+      return self.value
 
 class Thing(object):
 
@@ -28,6 +28,13 @@ class Thing(object):
         self.apiHost = ''
         self.nestHost = ''
 	self.logfile = logfile
+        if not os.path.exists(self.home):
+            try:
+                os.makedirs(self.home)
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise FailedValidation('Unable to create settings directory ' + self.home)
+
 
     def set_log(self, logfile):
 	self.logfile = logfile

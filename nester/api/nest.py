@@ -30,8 +30,8 @@ class Nest(Cloud):
 
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('nest', help='Manage an app nest')
-        app_cmd_parsers = cmd_parser.add_subparsers(dest='nest_command', help='nest commands')
+        cmd_parser = subparsers.add_parser('nests', help='Manage nests')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='nest_command', help='Nest commands')
 
         app_cmd_parsers.add_parser('up', help='Launch the nest')
         app_cmd_parsers.add_parser('down', help='Teardown the nest')
@@ -39,7 +39,7 @@ class Nest(Cloud):
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'nest':
+        if args.command == 'nests':
             self.log("handle nest command")
             cmd_handled = True
             if (args.nest_command == 'up'):

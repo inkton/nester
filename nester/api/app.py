@@ -28,8 +28,8 @@ class App(Cloud):
                     raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('app', help='Manage a nest.yt app')
-        app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='app commands')
+        cmd_parser = subparsers.add_parser('apps', help='Manage an app')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
         app_cmd_parsers.add_parser('attach', help='Attach to the current app in the environment')
 
@@ -49,7 +49,7 @@ class App(Cloud):
     def exec_command(self, args):
 	self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'app':
+        if args.command == 'apps':
  	    self.log("handle app command")
             cmd_handled = True
             if (args.app_command == 'attach'):
@@ -84,7 +84,7 @@ class App(Cloud):
             auth = Auth(os.environ['NEST_CONTACT_EMAIL'], None)
             auth.save()
 	except Exception as e:
-            print(e.value)
+            print(e)
 
     def remove_owner(self):
 	self.log("removing current user")

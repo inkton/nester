@@ -16,8 +16,10 @@ from api.auth import Auth
 from api.cloud import Cloud
 from api.app import App
 from api.forest import Forest
+from api.tree import Tree
 from api.content import Content
 from api.nest import Nest
+from api.contact import Contact
 
 class Nester(object):
     
@@ -39,11 +41,17 @@ class Nester(object):
 	forest = Forest(auth)
         forest.parse_command(subparsers)
 
+	tree = Tree(auth)
+        tree.parse_command(subparsers)
+
 	content = Content(auth)
         content.parse_command(subparsers)
 
 	nest = Nest(auth)
         nest.parse_command(subparsers)
+
+	contact = Contact(auth)
+        contact.parse_command(subparsers)
 
         args = parser.parse_args()
 	print('\n')
@@ -52,8 +60,12 @@ class Nester(object):
 		return
 	if forest.exec_command(args) == True:
 		return
+	if tree.exec_command(args) == True:
+		return
 	if content.exec_command(args) == True:
 		return
 	if nest.exec_command(args) == True:
+		return
+	if contact.exec_command(args) == True:
 		return
 

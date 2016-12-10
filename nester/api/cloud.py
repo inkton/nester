@@ -25,14 +25,8 @@ class Cloud(Thing):
     def __init__(self, auth):
         super(Cloud, self).__init__()
         self.auth = auth
-        #self.enable_logging()
+        self.enable_logging()
         requests.packages.urllib3.disable_warnings()
-        if not os.path.exists(self.home):
-            try:
-                os.makedirs(self.home)
-            except OSError as exception:
-                if exception.errno != errno.EEXIST:
-                    raise FailedValidation('Unable to create settings directory ' + self.home)
 
     @abc.abstractmethod
     def new_copy(self, object):
@@ -135,20 +129,33 @@ class Cloud(Thing):
 
         return object
 
-    def query(self, subject, filter=None):
+    def create(self, url, subject, data):
+        #data['token'] = self.auth.token
+        filter = {}
+        filter['token'] = self.auth.token
+ 
+        response = requests.post(
+           self.get_url(url), json=data, 
+		verify = False, params = filter)
+
+        return self.get_data(response)
+
+    def query(self, url, filter=None):
         if filter is None:
             filter = {}
         filter['token'] = self.auth.token
         response = requests.get(
-          self.get_url(subject),
+          self.get_url(url),
                 verify = False,
                 params = filter)
         return self.get_data(response)
 
-    def cache_list(self, subject, filter=None):
+    def cache_list(self, url, subject=None, filter=None):
+        if subject is None:
+           subject = url
 	if len(os.listdir(self.home + '/' + subject)):
            return False
-        data = self.query(subject, filter)
+        data = self.query(url, filter)
         list = data[subject]
 	for object in list:
             create_entity = self.new_copy(object)

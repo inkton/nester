@@ -98,8 +98,8 @@ class Content(Cloud):
                     raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('content', help='Manage current app\'s contents')
-        app_cmd_parsers = cmd_parser.add_subparsers(dest='content_command', help='content commands')
+        cmd_parser = subparsers.add_parser('contents', help='Manage contents')
+        app_cmd_parsers = cmd_parser.add_subparsers(dest='content_command', help='Content commands')
 
         push_cmd = app_cmd_parsers.add_parser('push', help='Push content to the remote live site')
         push_cmd.add_argument('-t', '--timeout', type=int, default=30, required=False, help='The timeout')
@@ -114,7 +114,7 @@ class Content(Cloud):
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'content':
+        if args.command == 'contents':
             self.log("handle content command")
             cmd_handled = True
             if (args.content_command == 'push'):

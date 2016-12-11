@@ -88,7 +88,7 @@ class Thing(object):
         pass
 
     @abc.abstractmethod
-    def get_table_row_data(self, tag):
+    def get_table_row_data(self, key):
         pass
 
     def draw_table(self, subject):

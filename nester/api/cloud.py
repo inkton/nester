@@ -150,7 +150,7 @@ class Cloud(Thing):
                 params = filter)
         return self.get_data(response)
 
-    def cache_list(self, url, subject=None, filter=None):
+    def cache_list(self, url, subject=None, filter=None, key='tag'):
         if subject is None:
            subject = url
 	if len(os.listdir(self.home + '/' + subject)):
@@ -159,7 +159,7 @@ class Cloud(Thing):
         list = data[subject]
 	for object in list:
             create_entity = self.new_copy(object)
-            path = self.home + '/' + subject + '/' +  create_entity.tag
+            path = '/' + subject + '/' + str(eval('create_entity.%s' % key))
             self.save_object(path, create_entity)
 	return True
 

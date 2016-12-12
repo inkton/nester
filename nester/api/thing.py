@@ -6,7 +6,7 @@
 ## -*- python -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-import errno, os, sys, logging
+import errno, os, shutil, sys, logging
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 from texttable import Texttable
@@ -62,10 +62,50 @@ class Thing(object):
         self.log(cmd)	
         self.log("result - " + proc.stdout.read())	
 
+    def remove_folder_content(self, folder):
+	for the_file in os.listdir(folder):
+	    file_path = os.path.join(folder, the_file)
+	    if os.path.isfile(file_path):
+	       os.unlink(file_path)
+	    elif os.path.isdir(file_path): shutil.rmtree(file_path)
+
     def secure_workarea(self):
 	self.log("secure workarea")
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
         self.os_exec("chmod -R 755 /var/app ")
+
+    # from http://stackoverflow.com/questions/3041986/python-command-line-yes-no-input - thanks
+    def confirm(self, question, default="yes"):
+        """Ask a yes/no question via raw_input() and return their answer.
+
+        "question" is a string that is presented to the user.
+        "default" is the presumed answer if the user just hits <Enter>.
+            It must be "yes" (the default), "no" or None (meaning
+            an answer is required of the user).
+
+        The "answer" return value is True for "yes" or False for "no".
+        """
+        valid = {"yes": True, "y": True, "ye": True,
+                 "no": False, "n": False}
+        if default is None:
+            prompt = " [y/n] "
+        elif default == "yes":
+            prompt = " [Y/n] "
+        elif default == "no":
+            prompt = " [y/N] "
+        else:
+            raise ValueError("invalid default answer: '%s'" % default)
+
+        while True:
+            sys.stdout.write(question + prompt)
+            choice = raw_input().lower()
+            if default is not None and choice == '':
+                return valid[default]
+            elif choice in valid:
+                return valid[choice]
+            else:
+                sys.stdout.write("Please respond with 'yes' or 'no' "
+                                 "(or 'y' or 'n').\n")
 
     @abc.abstractmethod
     def draw_table_col_width(self, table):

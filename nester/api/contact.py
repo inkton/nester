@@ -45,8 +45,11 @@ class Contact(Cloud):
         cmd_parser = subparsers.add_parser('contacts', help='Manage contacts')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='contact_command', help='Contact commands')
 
-        invite_cmd = app_cmd_parsers.add_parser('invite', help='Invite a contact')    
-        invite_cmd.add_argument('-e', '--email', type=str, required=True, help='Email address of the contact')
+        sub_cmd = app_cmd_parsers.add_parser('invite', help='Invite a contact')    
+        sub_cmd.add_argument('-e', '--email', type=str, required=True, help='Email address of the contact')
+        sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove a contact')    
+        sub_cmd.add_argument('-i', '--id', type=int, required=True, help='Id of the contact')
+
         app_cmd_parsers.add_parser('list', help='List contacts')    
 
     def exec_command(self, args):
@@ -57,6 +60,8 @@ class Contact(Cloud):
             cmd_handled = True
             if (args.contact_command == 'invite'):
                self.invite(args.email)
+            elif (args.contact_command == 'remove'):
+               self.remove(args.id)
 	    elif (args.contact_command == 'list'):
                self.list()
 	    else:
@@ -70,6 +75,17 @@ class Contact(Cloud):
 		os.environ['NEST_CONTACT_USER_ID'],
 		os.environ['NEST_APP_ID']), 
 			'contacts', { 'email' : email })
+	except Exception as e:
+            print(e)
+
+    def remove(self, id):
+        try:
+            if (self.confirm("Are you sure to remove contact " + str(id) +" ?\nThis will remove the acoount and its contents", default="no")) :
+               self.delete("users/{0}/apps/{1}/contacts/{2}".format(
+                  os.environ['NEST_CONTACT_USER_ID'],
+		  os.environ['NEST_APP_ID'],
+		  id), 
+			'contacts', {})
 	except Exception as e:
             print(e)
 

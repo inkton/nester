@@ -130,7 +130,6 @@ class Cloud(Thing):
         return object
 
     def create(self, url, subject, data):
-        #data['token'] = self.auth.token
         filter = {}
         filter['token'] = self.auth.token
  
@@ -139,6 +138,14 @@ class Cloud(Thing):
 		verify = False, params = filter)
 
         return self.get_data(response)
+
+    def delete(self, url, subject, data):
+        filter = {}
+        filter['token'] = self.auth.token
+ 
+        response = requests.delete(
+           self.get_url(url), json=data, 
+		verify = False, params = filter)
 
     def query(self, url, filter=None):
         if filter is None:
@@ -153,8 +160,9 @@ class Cloud(Thing):
     def cache_list(self, url, subject=None, filter=None, key='tag'):
         if subject is None:
            subject = url
-	if len(os.listdir(self.home + '/' + subject)):
-           return False
+        self.remove_folder_content(self.home + '/' + subject)
+	#if len(os.listdir(self.home + '/' + subject)):
+        #   return False
         data = self.query(url, filter)
         list = data[subject]
 	for object in list:

@@ -20,6 +20,7 @@ from api.tree import Tree
 from api.content import Content
 from api.nest import Nest
 from api.contact import Contact
+from api.devkit import DevKit
 
 class Nester(object):
     
@@ -53,6 +54,9 @@ class Nester(object):
 	contact = Contact(auth)
         contact.parse_command(subparsers)
 
+	devkit = DevKit(auth)
+        devkit.parse_command(subparsers)
+
         args = parser.parse_args()
 	print('\n')
 
@@ -67,5 +71,7 @@ class Nester(object):
 	if nest.exec_command(args) == True:
 		return
 	if contact.exec_command(args) == True:
+		return
+	if devkit.exec_command(args) == True:
 		return
 

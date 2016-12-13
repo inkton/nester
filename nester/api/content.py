@@ -1,78 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Rajitha Wijayaratne (rajitha.wijayaratne-at-gmail.com)
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution.
-
-
-
-#import errno, sys, signal, os, datetime, time, logging, shutil
-#import json, jsonpickle
-#import base64, hashlib, hmac 
-#import requests, httplib
-#import requests
-
-#import subprocess, itertools
-
-#from forest import Forest
-#from nest import Nest
-#from permit import Permit
-#from notice import Notice
-#from user import User
-#from util import Util
-
-#from util import FailedValidation
-
-"""
-    nester.py -h | --help
-    nester.py --version
-    nester.py permit (allow <user> <secret> | info | deny)
-    nester.py user (info | update [] )
-    nester.py forest (list | info | enter)    
-    nester.py nest (list (languages|frameworks|apps|databases) |
-                    create name with --platform (language|framework|app)  [--user-first-name=<fname> --user-surname=<sname> --user-email=<email> --domain=<domain> --instances=<inst>] --db (mysql | postgress| mongodb)
-                    
-                   create ( ( bare | language (php) | framework (laravel|symfony|nette) db (none | mysql | postgress| mongodb) ) | app (wordpress) )  [--user-first-name=<fname> --user-surname=<sname> --user-email=<email> --domain=<domain> --instances=<inst>] | 
-                   delete <name> |
-                   replicate <forest> [--tree=<tree> --instances=1] |
-                   test <name> rig (create | delete) |
-                   status <name> |
-                   exec <name> <instance> <cmd> [--args=<args>] |
-                   ssh <name> <instance>
-                   )           
-"""
-
-# version
-# permit
-#   allow user secret
-#   deny
-# forest
-#   list 
-#   info
-#   enter
-# nest
-#   images
-#   create name --user-first-name, --user-surname --user-email --image --domain --memory --drive-space --php-processor --db-processor    
-#   create-staging name
-#   delete name
-#   update name
-#   shell-exec name cmd --args
-#   move name forest --pref-tree
-#   enter name
-#   nest status name
-#def become_tty_fg():
-#	os.setpgrp()
-#	hdlr = signal.signal(signal.SIGTTOU, signal.SIG_IGN)
-#	#tty = os.open('/dev/tty', os.O_RDWR)
-#	#os.tcsetpgrp(tty, os.getpgrp())
-#	signal.signal(signal.SIGTTOU, hdlr)
-
-
-#!/usr/bin/env python
-#
 #  Copyright (C) Inkton 2016 <thebird@nest.yt>
 #
 ## -*- python -*-
@@ -89,13 +17,7 @@ from cloud import Cloud
 class Content(Cloud):
 
     def __init__(self, auth):
-        super(Cloud, self).__init__(auth)
-        if not os.path.exists(self.home):
-            try:
-                os.makedirs(self.home + '/contents')
-            except OSError as exception:
-                if exception.errno != errno.EEXIST:
-                    raise FailedValidation('Unable to create settings directory ' + self.home)
+        super(Cloud, self).__init__('contents', auth)
 
     def parse_command(self, subparsers):
         cmd_parser = subparsers.add_parser('contents', help='Manage contents')
@@ -108,13 +30,12 @@ class Content(Cloud):
         pull_cmd.add_argument('-t', '--timeout', type=int, default=30, required=False, help='The timeout')
 
         app_cmd_parsers.add_parser('edit', help='Edit content on the remote live site')
-        #permit_subparserss.add_parser('info',  help='Show current permit')
-        #permit_subparserss.add_parser('deny',  help='Deny current user to enter the forest')
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'contents':
+        if args.command == self.subject:
             self.log("handle content command")
             cmd_handled = True
             if (args.content_command == 'push'):
@@ -123,6 +44,8 @@ class Content(Cloud):
                self.pull(args.timeout)
 	    elif (args.content_command == 'edit'):
                self.edit()
+            elif (args.content_command == 'clear'):
+	       self.clear_cache()
             else:
                 cmd_handled = False
             self.end_cmd()

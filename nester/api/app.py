@@ -19,16 +19,10 @@ from auth import Auth
 class App(Cloud):
 
     def __init__(self, auth):
-        super(Cloud, self).__init__(auth)
-        if not os.path.exists(self.home):
-            try:
-                os.makedirs(self.home + '/apps')
-            except OSError as exception:
-                if exception.errno != errno.EEXIST:
-                    raise FailedValidation('Unable to create settings directory ' + self.home)
+        super(Cloud, self).__init__('apps', auth)
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('apps', help='Manage an app')
+        cmd_parser = subparsers.add_parser(self.subject, help='Manage an app')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
         app_cmd_parsers.add_parser('attach', help='Attach to the current app in the environment')
@@ -37,19 +31,12 @@ class App(Cloud):
 	allow_cmd.add_argument('-p', '--password', type=str, help='The password')
 
         revoke_cmd = app_cmd_parsers.add_parser('revoke', help='Revoke permission to update the app')
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
-        #permit_cmd_allow = permit_cmd.add_subparsers(dest='allow_command', help='Allow permission')
-        #permit_cmd_allow.add_argument('password', type=str, help='The password')
-
-        #permit_cmd.add_argument('revoke', type=str, help='Revoke permission')
-
-        #permit_subparserss.add_parser('info',  help='Show current permit')
-        #permit_subparserss.add_parser('deny',  help='Deny current user to enter the forest')
- 
     def exec_command(self, args):
 	self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'apps':
+        if args.command == self.subject:
  	    self.log("handle app command")
             cmd_handled = True
             if (args.app_command == 'attach'):
@@ -58,6 +45,8 @@ class App(Cloud):
                self.allow(args.password)
             elif (args.app_command == 'revoke'):
                self.revoke()
+            elif (args.app_command == 'clear'):
+	       self.clear_cache()
             else:
             	cmd_handled = False
             self.end_cmd()
@@ -77,7 +66,7 @@ class App(Cloud):
             auth.get_token()
             auth.save()
 	except Exception as e:
-            print(e.value)
+            print(e)
 
     def revoke(self):
         try:

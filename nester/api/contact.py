@@ -26,15 +26,8 @@ class Contact(Cloud):
     notify_updates = None   
 
     def __init__(self, auth, id=None):
-        super(Contact, self).__init__(auth)
-
+        super(Contact, self).__init__('contacts', auth)
 	self.id = id
-
-        try:
-            os.makedirs(self.home + '/contacts')
-        except OSError as exception:
-	    if exception.errno != errno.EEXIST:
-                raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def new_copy(self, object):
         new_entity = Contact(self.auth) 
@@ -42,28 +35,31 @@ class Contact(Cloud):
         return new_entity
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('contacts', help='Manage contacts')
+        cmd_parser = subparsers.add_parser(self.subject, help='Manage contacts')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='contact_command', help='Contact commands')
 
         sub_cmd = app_cmd_parsers.add_parser('invite', help='Invite a contact')    
         sub_cmd.add_argument('-e', '--email', type=str, required=True, help='Email address of the contact')
         sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove a contact')    
-        sub_cmd.add_argument('-i', '--id', type=int, required=True, help='Id of the contact')
+        sub_cmd.add_argument('-i', '--identiier', type=int, required=True, help='Id of the contact')
 
         app_cmd_parsers.add_parser('list', help='List contacts')    
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'contacts':
+        if args.command == self.subject:
             self.log("handle contact command")
             cmd_handled = True
             if (args.contact_command == 'invite'):
                self.invite(args.email)
             elif (args.contact_command == 'remove'):
-               self.remove(args.id)
+               self.remove(args.identiier)
 	    elif (args.contact_command == 'list'):
                self.list()
+            elif (args.contact_command == 'clear'):
+	       self.clear_cache()
 	    else:
                cmd_handled = False
             self.end_cmd()
@@ -74,7 +70,7 @@ class Contact(Cloud):
             self.create("users/{0}/apps/{1}/contacts".format(
 		os.environ['NEST_CONTACT_USER_ID'],
 		os.environ['NEST_APP_ID']), 
-			'contacts', { 'email' : email })
+			{ 'email' : email })
 	except Exception as e:
             print(e)
 
@@ -84,26 +80,25 @@ class Contact(Cloud):
                self.delete("users/{0}/apps/{1}/contacts/{2}".format(
                   os.environ['NEST_CONTACT_USER_ID'],
 		  os.environ['NEST_APP_ID'],
-		  id), 
-			'contacts', {})
+		  id), {})
 	except Exception as e:
             print(e)
 
     def list(self):
         try:
-            self.cache_list("users/{0}/apps/{1}/contacts".format(
+            self.query_list("users/{0}/apps/{1}/contacts".format(
 		os.environ['NEST_CONTACT_USER_ID'],
 		os.environ['NEST_APP_ID']), 
-			'contacts', None, 'id')
-            self.draw_table("contacts")
+		None, 'id')
+            self.draw_table()
 	except Exception as e:
             print(e)
 
     def load(self):
-	self.load_object('/contacts/' + str(self.id), self)
+	self.load_by_key(str(self.id), self)
 
     def save(self):
-        self.save_object('/contacts/' + str(self.id), self)
+        self.save_by_key(str(self.id), self)
 
     def draw_table_col_width(self, table):
         table.set_cols_width([5, 15, 10, 10, 10, 10, 15])

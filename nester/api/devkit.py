@@ -3,7 +3,7 @@
 #  Copyright (C) Inkton 2016 <thebird@nest.yt>
 #
 ## -*- python -*-
-# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# vim: tabstop=8 expandtab shiftwidt=4 softtabstop=4
 
 import errno, os, sys
 import argparse
@@ -17,13 +17,7 @@ from cloud import Cloud
 class DevKit(Cloud):
      
     def __init__(self, auth):
-        super(DevKit, self).__init__(auth)
-
-        try:
-            os.makedirs(self.home + '/devkits')
-        except OSError as exception:
-	    if exception.errno != errno.EEXIST:
-                raise FailedValidation('Unable to create settings directory ' + self.home)
+        super(DevKit, self).__init__('devkits', auth)
 
     def new_copy(self, object):
         new_entity = DevKit(self.auth) 
@@ -31,16 +25,17 @@ class DevKit(Cloud):
         return new_entity
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('devkits', help='Manage devKits')
+        cmd_parser = subparsers.add_parser(self.subject, help='Manage devKits')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='devkit_command', help='DevKit commands')
 
         sub_cmd = app_cmd_parsers.add_parser('send', help='Send a devkit')    
         sub_cmd.add_argument('-i', '--id', type=int, required=True, help='Id of the contact')
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'devkits':
+        if args.command == self.subject:
             self.log("handle devkit command")
             cmd_handled = True
             if (args.devkit_command == 'send'):
@@ -55,8 +50,7 @@ class DevKit(Cloud):
             self.create("users/{0}/apps/{1}/contacts/{2}/devkit".format(
 		os.environ['NEST_CONTACT_USER_ID'],
 		os.environ['NEST_APP_ID'],
-		id), 
-			'devkits', {})
+		id), {})
 	except Exception as e:
             print(e)
 

@@ -22,15 +22,8 @@ class Forest(Cloud):
     continent = None
 
     def __init__(self, auth, tag=None):
-        super(Forest, self).__init__(auth)
-
+        super(Forest, self).__init__('forests', auth)
 	self.tag = tag
-
-        try:
-            os.makedirs(self.home + '/forests')
-        except OSError as exception:
-	    if exception.errno != errno.EEXIST:
-                raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def new_copy(self, object):
         new_entity = Forest(self.auth) 
@@ -38,19 +31,22 @@ class Forest(Cloud):
         return new_entity
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('forests', help='Manage forests')
+        cmd_parser = subparsers.add_parser(self.subject, help='Manage forests')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='forest_command', help='Forest commands')
 
         app_cmd_parsers.add_parser('list', help='List forests')
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'forests':
+        if args.command == self.subject:
             self.log("handle forest command")
             cmd_handled = True
             if (args.forest_command == 'list'):
                self.list()
+            elif (args.forest_command == 'clear'):
+	       self.clear_cache()
 	    else:
                cmd_handled = False
             self.end_cmd()
@@ -58,16 +54,16 @@ class Forest(Cloud):
 
     def list(self):
         try:
-            self.cache_list("forests")
-            self.draw_table("forests")
+            self.query_list()
+            self.draw_table()
 	except Exception as e:
             print(e)
 
     def load(self):
-	self.load_object('/forests/' + self.tag, self)
+	self.load_by_key(self.tag, self)
 
     def save(self):
-        self.save_object('/forests/' + self.tag, self)
+        self.save_by_key(self.tag, self)
 
     def draw_table_col_width(self, table):
         table.set_cols_width([20, 10, 30, 10])

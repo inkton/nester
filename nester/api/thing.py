@@ -10,7 +10,7 @@ import errno, os, shutil, sys, logging
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 from texttable import Texttable
-import argparse, abc 
+import argparse, abc, jsonpickle
 
 class FailedValidation(Exception):
    def __init__(self, value):
@@ -22,19 +22,40 @@ class FailedValidation(Exception):
 class Thing(object):
 
     logfile = None
+    subject = None
     home = '{0}/.forest-keeper'.format(os.path.expanduser("~"))
 
-    def __init__(self, logfile=None):
-        self.apiHost = ''
-        self.nestHost = ''
-	self.logfile = logfile
-        if not os.path.exists(self.home):
-            try:
-                os.makedirs(self.home)
-            except OSError as exception:
-                if exception.errno != errno.EEXIST:
-                    raise FailedValidation('Unable to create settings directory ' + self.home)
+    def __init__(self, subject, logfile=None):
+        self.subject = subject
+        try:
+           os.makedirs(self.home)
+        except OSError as exception:
+	   if exception.errno != errno.EEXIST:
+	       raise FailedValidation('Unable to create settings directory ' + self.home)
+    	try:
+           os.makedirs(self.get_folder())
+        except OSError as exception:
+	   if exception.errno != errno.EEXIST:
+	       raise FailedValidation('Unable to create settings directory ' + self.home)
 
+    def get_folder(self):
+	return (self.home) + '/' + self.subject
+
+    def clear_cache(self):
+	self.remove_folder_content(self.get_folder())
+
+    def load_by_key(self, key, default):
+	obj_path = self.get_folder() + '/' + key + '.json'
+        if not os.path.exists(obj_path):
+            open(obj_path, 'w').write(jsonpickle.encode(default))
+            return default
+        else:
+            saved = jsonpickle.decode(open(obj_path).read())
+            default.__dict__.update(saved.__dict__)
+
+    def save_by_key(self, key, object):
+	obj_path = self.get_folder() + '/' + key + '.json'
+        open(obj_path, 'w').write(jsonpickle.encode(object))
 
     def set_log(self, logfile):
 	self.logfile = logfile
@@ -131,7 +152,17 @@ class Thing(object):
     def get_table_row_data(self, key):
         pass
 
-    def draw_table(self, subject):
+    def draw_object(self, obj, cols_keys, cols_names):
+        rows = [['Key', 'Value']]
+        for col_key in cols_keys:
+            rows.append([cols_names[col_key], obj.__dict__[col_key]])
+        table = Texttable()
+        table.set_cols_align(["l", "l"])
+        table.set_cols_valign(["t", "t"])
+        table.add_rows(rows)
+        print(table.draw())
+
+    def draw_table(self):
 	table = Texttable()
         table.set_deco(Texttable.HEADER)
 	
@@ -143,7 +174,7 @@ class Thing(object):
 	rows = []
 	rows.append(self.get_table_col_header())
 
-	for filename in os.listdir(self.home + '/' + subject):
+	for filename in os.listdir(self.get_folder()):
 	    if filename.endswith(".json"): 
                 file_parts = filename.split('.')
                 rows.append(self.get_table_row_data(file_parts[0]))

@@ -21,16 +21,9 @@ class Auth(Cloud):
     user = {}
           
     def __init__(self, email, password=None):
-        super(Auth, self).__init__(self)
-
+        super(Auth, self).__init__('auth', self)
 	self.email = email
 	self.password = password
-
-        try:
-            os.makedirs(self.home + '/auth')
-        except OSError as exception:
-	    if exception.errno != errno.EEXIST:
-                raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def get_token(self):
         response = requests.get(
@@ -43,9 +36,9 @@ class Auth(Cloud):
         self.__dict__.update(data)
 
     def load(self):
-	self.load_object('/auth/' + self.email, self)
+	self.load_by_key(self.email, self)
         return self.password != None
 
     def save(self):
-        self.save_object('/auth/' + self.email, self)
+        self.save_by_key(self.email, self)
 

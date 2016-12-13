@@ -20,15 +20,8 @@ class Tree(Cloud):
     name = None   
 
     def __init__(self, auth, tag=None):
-        super(Tree, self).__init__(auth)
-
+        super(Tree, self).__init__('trees', auth)
 	self.tag = tag
-
-        try:
-            os.makedirs(self.home + '/trees')
-        except OSError as exception:
-	    if exception.errno != errno.EEXIST:
-                raise FailedValidation('Unable to create settings directory ' + self.home)
 
     def new_copy(self, object):
         new_entity = Tree(self.auth) 
@@ -36,20 +29,23 @@ class Tree(Cloud):
         return new_entity
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('trees', help='Manage trees')
+        cmd_parser = subparsers.add_parser(self.subject, help='Manage trees')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='tree_command', help='Tree commands')
 
         list_cmd = app_cmd_parsers.add_parser('list', help='List trees')    
         list_cmd.add_argument('-f', '--forest', type=str, required=True, help='Forest id or tag')
+        app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == 'trees':
+        if args.command == self.subject:
             self.log("handle tree command")
             cmd_handled = True
             if (args.tree_command == 'list'):
                self.list(args.forest)
+            elif (args.tree_command == 'clear'):
+	       self.clear_cache()
 	    else:
                cmd_handled = False
             self.end_cmd()
@@ -57,16 +53,16 @@ class Tree(Cloud):
 
     def list(self, forest_id):
         try:
-            self.cache_list("forests/{0}/trees".format(forest_id), 'trees')
-            self.draw_table("trees")
+            self.query_list("forests/{0}/trees".format(forest_id))
+            self.draw_table()
 	except Exception as e:
             print(e)
 
     def load(self):
-	self.load_object('/trees/' + self.tag, self)
+	self.load_by_key(self.tag, self)
 
     def save(self):
-        self.save_object('/trees/' + self.tag, self)
+        self.save_by_key(self.tag, self)
 
     def draw_table_col_width(self, table):
         table.set_cols_width([20, 30])

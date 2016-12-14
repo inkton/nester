@@ -38,10 +38,10 @@ class Nest(Cloud):
         cmd_parser = subparsers.add_parser(self.subject, help='Manage nests')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='nest_command', help='Nest commands')
 
-        app_cmd_parsers.add_parser('up', help='Launch the nest')
-        app_cmd_parsers.add_parser('down', help='Teardown the nest')
+        app_cmd_parsers.add_parser('up', help='Launch this nest')
+        app_cmd_parsers.add_parser('down', help='Teardown this nest')
         app_cmd_parsers.add_parser('current', help='Show the current nest')
-        app_cmd_parsers.add_parser('list', help='List all application nests')
+        app_cmd_parsers.add_parser('list', help='List all app nests')
           
         sub_cmd = app_cmd_parsers.add_parser('add', help='Add a nest')
         sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A memorable identifier. Must be lower case without spaces')
@@ -71,6 +71,8 @@ class Nest(Cloud):
             elif (args.nest_command == 'add'):
                self.add(args.tag, args.platform, args.name,
 			args.scale, args.scale_size)
+            elif (args.nest_command == 'remove'):
+               self.remove(args.identifier)
             elif (args.nest_command == 'clear'):
 	       self.clear_cache()
             else:
@@ -118,9 +120,7 @@ class Nest(Cloud):
 
     def add(self, tag, platform, name, scale, scale_size):
         try:
-            self.create("users/{0}/apps/{1}/contacts".format(
-		os.environ['NEST_CONTACT_USER_ID'],
-		os.environ['NEST_APP_ID']), 
+            self.create("apps/{0}/nests".format(os.environ['NEST_APP_ID']), 
 			{ 'tag' : tag, 'host_platform_tag' : platform, 
 			'name' : name, 'scale' : scale, 
 			'scale_size' : scale_size,
@@ -130,14 +130,16 @@ class Nest(Cloud):
 
     def remove(self, tag):
         try:
-            if (self.confirm("Are you sure to remove contact " + tag +
+            if (self.confirm("Are you sure to remove the nest " + tag +
 		" ?\nThis will remove the nest and its contents", default="no")) :
 		self.cache_list("apps/{0}/nests".format(
 		  os.environ['NEST_APP_ID']), 
 		  None, 'tag')
 
 	        remove_obj = Nest(self.auth, tag)
-        	remove_obj.load()
+        	if not remove_obj.load():
+                   print "The nest does not exist"
+                   return
  
 		self.delete("apps/{0}/nests/{1}".format(
 		  os.environ['NEST_APP_ID'],
@@ -145,12 +147,11 @@ class Nest(Cloud):
 	except Exception as e:
             print(e)
 
-
     def load(self):
-	self.load_by_key(self.tag, self)
+	return self.load_by_key(self.tag)
 
     def save(self):
-        self.save_by_key(self.tag, self)
+        return self.save_by_key(self.tag)
 
     def draw_table_col_width(self, table):
         table.set_cols_width([5, 12, 10, 10, 20])

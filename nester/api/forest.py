@@ -60,10 +60,10 @@ class Forest(Cloud):
             print(e)
 
     def load(self):
-	self.load_by_key(self.tag, self)
+	return self.load_by_key(self.tag)
 
     def save(self):
-        self.save_by_key(self.tag, self)
+        return self.save_by_key(self.tag)
 
     def draw_table_col_width(self, table):
         table.set_cols_width([20, 10, 30, 10])

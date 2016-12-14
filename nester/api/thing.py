@@ -44,18 +44,18 @@ class Thing(object):
     def clear_cache(self):
 	self.remove_folder_content(self.get_folder())
 
-    def load_by_key(self, key, default):
+    def load_by_key(self, key):
 	obj_path = self.get_folder() + '/' + key + '.json'
         if not os.path.exists(obj_path):
-            open(obj_path, 'w').write(jsonpickle.encode(default))
-            return default
+            return False
         else:
             saved = jsonpickle.decode(open(obj_path).read())
-            default.__dict__.update(saved.__dict__)
+            self.__dict__.update(saved.__dict__)
+            return True
 
-    def save_by_key(self, key, object):
+    def save_by_key(self, key):
 	obj_path = self.get_folder() + '/' + key + '.json'
-        open(obj_path, 'w').write(jsonpickle.encode(object))
+        open(obj_path, 'w').write(jsonpickle.encode(self))
 
     def set_log(self, logfile):
 	self.logfile = logfile

@@ -21,16 +21,21 @@ class App(Cloud):
     def __init__(self, auth):
         super(Cloud, self).__init__('apps', auth)
 
+    def new_copy(self, object):
+        new_entity = App(self.auth) 
+	new_entity.__dict__.update(object)
+        return new_entity
+
     def parse_command(self, subparsers):
         cmd_parser = subparsers.add_parser(self.subject, help='Manage an app')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
-        app_cmd_parsers.add_parser('attach', help='Attach to the current app in the environment')
+        app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
 
-        allow_cmd = app_cmd_parsers.add_parser('allow', help='Allow permission to update the app')
+        allow_cmd = app_cmd_parsers.add_parser('allow', help='Get update permission to the app')
 	allow_cmd.add_argument('-p', '--password', type=str, help='The password')
 
-        revoke_cmd = app_cmd_parsers.add_parser('revoke', help='Revoke permission to update the app')
+        app_cmd_parsers.add_parser('revoke', help='Revoke update permission to the app')
         app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):

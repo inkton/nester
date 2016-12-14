@@ -36,9 +36,11 @@ class Auth(Cloud):
         self.__dict__.update(data)
 
     def load(self):
-	self.load_by_key(self.email, self)
-        return self.password != None
+	ok = self.load_by_key(self.email)
+        if ok: 
+            ok = self.password != None
+        return ok
 
     def save(self):
-        self.save_by_key(self.email, self)
+        return self.save_by_key(self.email)
 

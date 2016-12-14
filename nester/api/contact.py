@@ -95,10 +95,10 @@ class Contact(Cloud):
             print(e)
 
     def load(self):
-	self.load_by_key(str(self.id), self)
+	return self.load_by_key(str(self.id))
 
     def save(self):
-        self.save_by_key(str(self.id), self)
+        return self.save_by_key(str(self.id))
 
     def draw_table_col_width(self, table):
         table.set_cols_width([5, 15, 10, 10, 10, 10, 15])

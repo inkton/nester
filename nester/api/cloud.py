@@ -43,20 +43,28 @@ class Cloud(Thing):
         requests_log.setLevel(logging.DEBUG)
         requests_log.propagate = True
 
-    def create(self, url, data):
+    def create(self, url, data={}):
         filter = {}
         filter['token'] = self.auth.token
- 
+        self.clear_cache()
         response = requests.post(
            self.get_url(url), json=data, 
 		verify = False, params = filter)
-
         return self.get_data(response)
 
-    def delete(self, url, data):
+    def update(self, url, data={}):
         filter = {}
         filter['token'] = self.auth.token
- 
+        self.clear_cache()
+        response = requests.put(
+           self.get_url(url), json=data, 
+		verify = False, params = filter)
+        return self.get_data(response)
+
+    def delete(self, url, data={}):
+        filter = {}
+        filter['token'] = self.auth.token
+        self.clear_cache()
         response = requests.delete(
            self.get_url(url), json=data, 
 		verify = False, params = filter)
@@ -86,7 +94,7 @@ class Cloud(Thing):
         list = data[self.subject]
 	for object in list:
             create_entity = self.new_copy(object)
-            self.save_by_key(str(eval('create_entity.%s' % key)), create_entity)
+            create_entity.save_by_key(str(eval('create_entity.%s' % key)))
         return True
 
     def get_data(self, response):

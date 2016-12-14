@@ -51,7 +51,7 @@ class Nest(Cloud):
         sub_cmd.add_argument('-z', '--scale-size', choices=['32m','64m','128m','256m','512m','1g','2g','4g','8g','16g'], required=True, help='Nest scale size, the number of cushions')
 
         sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove a nest')
-        sub_cmd.add_argument('-i', '--identifier', type=str, required=True, help='A nest tag or id')
+        sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A nest tag')
         app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
@@ -72,7 +72,7 @@ class Nest(Cloud):
                self.add(args.tag, args.platform, args.name,
 			args.scale, args.scale_size)
             elif (args.nest_command == 'remove'):
-               self.remove(args.identifier)
+               self.remove(args.tag)
             elif (args.nest_command == 'clear'):
 	       self.clear_cache()
             else:

@@ -19,6 +19,7 @@ from api.forest import Forest
 from api.tree import Tree
 from api.content import Content
 from api.nest import Nest
+from api.certificate import Certificate
 from api.domain import Domain
 from api.contact import Contact
 from api.devkit import DevKit
@@ -39,13 +40,14 @@ class Nester(object):
            auth.save()
 
         objects = [
-		App(auth),
-	        Forest(auth),
-		Tree(auth),
-		Content(auth),
-		Nest(auth),
-		Domain(auth),
-		Contact(auth),
+                App(auth),
+                Forest(auth),
+                Tree(auth),
+                Content(auth),
+                Nest(auth),
+                     Domain(auth),
+                    Certificate(auth),
+	        Contact(auth),
 		DevKit(auth),
 		Deployment(auth)
 	]
@@ -59,55 +61,4 @@ class Nester(object):
 	for the_obj in objects:
             if the_obj.exec_command(args) == True:
                 break
-
-'''
-	app = App(auth)
-        app.parse_command(subparsers)
-
-	forest = Forest(auth)
-        forest.parse_command(subparsers)
-
-	tree = Tree(auth)
-        tree.parse_command(subparsers)
-
-	content = Content(auth)
-        content.parse_command(subparsers)
-
-	nest = Nest(auth)
-        nest.parse_command(subparsers)
-
-	domain = Domain(auth)
-        domain.parse_command(subparsers)
-
-	contact = Contact(auth)
-        contact.parse_command(subparsers)
-
-	devkit = DevKit(auth)
-        devkit.parse_command(subparsers)
-
-	deployment = Deployment(auth)
-        deployment.parse_command(subparsers)
-'''
-	
-'''
-	if app.exec_command(args) == True:
-		return
-	  if forest.exec_command(args) == True:
-		return
-	if tree.exec_command(args) == True:
-		return
-	if content.exec_command(args) == True:
-		return
-	if nest.exec_command(args) == True:
-		return
-	if nest.exec_command(args) == True:
-		return
-	if contact.exec_command(args) == True:
-		return
-	if devkit.exec_command(args) == True:
-		return
-	if deployment.exec_command(args) == True:
-		return
-'''
-
 

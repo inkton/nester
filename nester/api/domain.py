@@ -109,10 +109,10 @@ class Domain(Cloud):
         return self.save_by_key(self.tag)
 
     def draw_table_col_width(self, table):
-        table.set_cols_width([5, 12, 30, 50])
+        table.set_cols_width([5, 12, 20, 35])
 
     def draw_table_col_align(self, table):
-        table.set_cols_align(["c", "l", "l", "l"])
+        table.set_cols_align(["c", "r", "r", "l"])
 
     def draw_table_col_valign(self, table):
         table.set_cols_align(["m", "m", "m", "m"])

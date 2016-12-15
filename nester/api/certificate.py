@@ -40,48 +40,50 @@ class Certificate(Cloud):
         sub_cmd = app_cmd_parsers.add_parser('add', help='Add certificate')
         sub_cmd.add_argument('-d', '--domain-tag', type=str, required=True, help='Tag of the domain')
         sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A memorable identifier. Must be lower case without spaces')
-        sub_cmd.add_argument('-y', '--type', choice=['free','custom'], required=True, help='Certificate type')
-          sub_cmd.add_argument('-c', '--cert-chain-file', type=str, required=False, help='File containing certificate chain')
+        sub_cmd.add_argument('-y', '--type', choices=['free','custom'], required=True, help='Certificate type')
+        sub_cmd.add_argument('-c', '--cert-chain-file', type=str, required=False, help='File containing certificate chain')
         sub_cmd.add_argument('-k', '--cert-key-file', type=str, required=False, help='File containing certificate key')
         
 	sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove certiicate')
         sub_cmd.add_argument('-d', '--domain-tag', type=str, required=True, help='Tag of the domain')
         sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A certificate tag')
-        app_cmd_parsers.add_parser('list', help='List all certificates')
+        
+        sub_cmd = app_cmd_parsers.add_parser('list', help='List all certificates')
+        sub_cmd.add_argument('-d', '--domain-tag', type=str, required=True, help='Tag of the domain')
           
         app_cmd_parsers.add_parser('clear', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
         cmd_handled = False
-        if args.command == self.subject:`
+        if args.command == self.subject:
             self.log("handle cert command")
             cmd_handled = True
             if (args.cert_command == 'add'):
                self.add(args.domain_tag, args.tag, args.type, 
 		args.cert_chain_file, args.cert_key_file)
-            elif (args.domain_command == 'remove'):
-               self.remove(aargs.domain_tag, args.tag)
-            elif (args.domain_command == 'list'):
-               self.list()
-            elif (args.domain_command == 'clear'):
+            elif (args.cert_command == 'remove'):
+               self.remove(args.domain_tag, args.tag)
+            elif (args.cert_command == 'list'):
+               self.list(args.domain_tag)
+            elif (args.cert_command == 'clear'):
 	       self.clear_cache()
             else:
                 cmd_handled = False
             self.end_cmd()
         return cmd_handled
  
-    def get_parent_domain(domain_tag):
-	self.cache_list("apps/{0}/domains".format(
+    def get_parent_domain(self, domain_tag):
+        domain = Domain(self.auth, domain_tag)
+	domain.cache_list("apps/{0}/domains".format(
             os.environ['NEST_APP_ID']), 
             None, 'tag')
-	owned_by_obj = Domain(self.auth, domain_tag)
-            if not owned_by_obj.load():
-               print "the domain does not exist"
-               return None
-        return owned_by_obj
+        if not domain.load():
+            print "the domain does not exist"
+            return None
+        return domain
 
-    def add(domain_tag, tag, type, 
+    def add(self, domain_tag, tag, type, 
 		cert_chain_file, cert_key_file):
         try: 
             owned_by_obj = self.get_parent_domain(domain_tag)
@@ -131,7 +133,7 @@ class Certificate(Cloud):
 		), None, 'tag')
 
 	    remove_obj = Certificate(self.auth, tag)
-            if not remove_obj load():
+            if not remove_obj.load():
                print "the domain certificate does not exist"
                return
 
@@ -144,7 +146,7 @@ class Certificate(Cloud):
 	except Exception as e:
             print(e)
 
-    def list(self):
+    def list(self, domain_tag):
 	self.log("cert list")
         try:
             owned_by_obj = self.get_parent_domain(domain_tag)
@@ -168,10 +170,10 @@ class Certificate(Cloud):
         return self.save_by_key(self.tag)
 
     def draw_table_col_width(self, table):
-        table.set_cols_width([5, 12, 15, 5])
+        table.set_cols_width([5, 10, 8, 10])
 
     def draw_table_col_align(self, table):
-        table.set_cols_align(["c", "l", "l", "l"])
+        table.set_cols_align(["c", "r", "r", "r"])
 
     def draw_table_col_valign(self, table):
         table.set_cols_align(["m", "m", "m", "m"])
@@ -180,12 +182,12 @@ class Certificate(Cloud):
         table.set_cols_align(["t", "t", "t", "t"])
 
     def get_table_col_header(self):
-        return ["id", "tag", "type", "app_domain_id" ]
+        return ["id", "tag", "type", "domain_id" ]
 
     def get_table_row_data(self, tag):
-        print_obj = Domain(self.auth, tag)
+        print_obj = Certificate(self.auth, tag)
         print_obj.load()
         return [  print_obj.id, print_obj.tag, 
-		print_obj.name, 
-		print_obj.aliases ]
+		print_obj.type, 
+		print_obj.app_domain_id ]
 

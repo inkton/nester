@@ -63,7 +63,7 @@ class App(Cloud):
         self.setup_workarea()
         self.setup_git()	
         self.os_exec("/bin/bash /usr/local/tree/nest/utils/create")
-        print "App attached. Re-start the container to begin"
+        #print "App attached. Re-start the container to begin"
 
     def allow(self, password):
         try:

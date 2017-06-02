@@ -41,15 +41,15 @@ class Nester(object):
 
         objects = [
                 App(auth),
-                Forest(auth),
-                Tree(auth),
+                #Forest(auth),
+                #Tree(auth),
                 Content(auth),
                 Nest(auth),
-                     Domain(auth),
-                    Certificate(auth),
-	        Contact(auth),
-		DevKit(auth),
-		Deployment(auth)
+                    #Domain(auth),
+                    #Certificate(auth),
+	        #Contact(auth),
+		#DevKit(auth),
+		#Deployment(auth)
 	]
 
 	for the_obj in objects:

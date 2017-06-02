@@ -53,11 +53,11 @@ class Content(Cloud):
    
     def push(self, timeout):
 	self.log("push content up")
-        self.os_exec("/usr/bin/rsync -avzrh --timeout=" + str(timeout) + " --progress /var/app nest:/var")
+        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app nest:/var")
 
     def pull(self, timeout):
 	self.log("pull content up")
-        self.os_exec("/usr/bin/rsync -avzrh --timeout=" + str(timeout) + " --progress nest:/var/app /var")
+        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app /var")
 
     def edit(self):
 	self.log("edit content")

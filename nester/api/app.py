@@ -107,8 +107,8 @@ class App(Cloud):
 
     def setup_workarea(self):
 	self.log("setup workarea")
-        self.os_exec("touch /var/app/.push_excludes")
-        self.os_exec("touch /var/app/.pull_excludes")
+        self.os_exec("echo publish/ > /var/app/.push_excludes")
+        self.os_exec("echo publish/ > /var/app/.pull_excludes")
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)

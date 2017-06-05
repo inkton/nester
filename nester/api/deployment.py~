@@ -61,7 +61,7 @@ class Deployment(Cloud):
 
     def publish(self):
         try:
-            self.os_exec("ssh nest 'deploy'", False)
+            self.os_exec("ssh nest 'deploy'")
 	except Exception as e:
             print(e)
 

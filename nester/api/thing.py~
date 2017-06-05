@@ -78,7 +78,7 @@ class Thing(object):
 	self.log(line_out);
         self.secure_workarea()
 
-    def os_exec(self, cmd, log=True):
+    def os_exec(self, cmd, log=true):
         if log:
             proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
             self.log(cmd)	

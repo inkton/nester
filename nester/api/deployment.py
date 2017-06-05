@@ -30,6 +30,7 @@ class Deployment(Cloud):
         app_cmd_parsers = cmd_parser.add_subparsers(dest='dep_command', help='Deployment commands')
 
         app_cmd_parsers.add_parser('update', help='Deploy the latest structural changes')
+        app_cmd_parsers.add_parser('publish', help='Publish the source in the remote folder')
 
     def exec_command(self, args):
 	self.set_log(args.log)
@@ -39,6 +40,8 @@ class Deployment(Cloud):
             cmd_handled = True
             if (args.dep_command == 'update'):
                self.change()
+            elif (args.dep_command == 'publish'):
+               self.publish()
             else:
             	cmd_handled = False
             self.end_cmd()
@@ -56,5 +59,10 @@ class Deployment(Cloud):
 	except Exception as e:
             print(e)
 
+    def publish(self):
+        try:
+            self.os_exec("ssh nest 'deploy'")
+	except Exception as e:
+            print(e)
 
 

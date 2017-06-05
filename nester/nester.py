@@ -49,7 +49,7 @@ class Nester(object):
                     #Certificate(auth),
 	        #Contact(auth),
 		#DevKit(auth),
-		#Deployment(auth)
+		Deployment(auth)
 	]
 
 	for the_obj in objects:

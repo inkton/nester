@@ -6,6 +6,7 @@ all:
 	python setup.py build
 
 install:
+	pip install -r requirements
 	python setup.py install --install-scripts=/usr/bin/
 
 develop:

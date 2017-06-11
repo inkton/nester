@@ -1,3 +1,8 @@
-jsonpickle
+virtualenv
+daemonize 
+logging 
+PySocks 
+requests
+jsonpickle 
 texttable
 pexpect

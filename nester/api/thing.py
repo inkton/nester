@@ -41,6 +41,21 @@ class Thing(object):
     def get_folder(self):
 	return (self.home) + '/' + self.subject
 
+    def get_app_folder(self):
+        return os.environ['NEST_FOLDER_APP'];  
+
+    def get_source_folder(self):
+        return os.environ['NEST_FOLDER_SOURCE'];  
+
+    def get_publish_folder(self):
+        return os.environ['NEST_FOLDER_PUBLISH'];  
+
+    def get_twig_folder(self):
+        return os.environ['NEST_FOLDER_TWIGS'];  
+
+    def get_twig_utils_folder(self):
+        return os.environ['NEST_FOLDER_TWIG_UTILS'];  
+ 
     def clear_cache(self):
 	self.remove_folder_content(self.get_folder())
 

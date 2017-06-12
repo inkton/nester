@@ -19,7 +19,7 @@ from auth import Auth
 class App(Cloud):
 
     def __init__(self, auth):
-        super(Cloud, self).__init__('apps', auth)
+        super(Cloud, self).__init__('app', auth)
 
     def new_copy(self, object):
         new_entity = App(self.auth) 
@@ -60,9 +60,15 @@ class App(Cloud):
     def attach(self):
         self.remove_owner()
         self.create_owner()
+
+        if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/app* /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/nest /var/app")
+        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
+
+        self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
         self.setup_git()	
-        self.os_exec("/bin/bash /usr/local/tree/nest/utils/create")
         #print "App attached. Re-start the container to begin"
 
     def allow(self, password):

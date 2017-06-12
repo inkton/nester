@@ -20,7 +20,7 @@ class Content(Cloud):
         super(Cloud, self).__init__('contents', auth)
 
     def parse_command(self, subparsers):
-        cmd_parser = subparsers.add_parser('contents', help='Manage contents')
+        cmd_parser = subparsers.add_parser('content', help='Manage contents')
         app_cmd_parsers = cmd_parser.add_subparsers(dest='content_command', help='Content commands')
 
         push_cmd = app_cmd_parsers.add_parser('push', help='Push content to the remote live site')
@@ -53,11 +53,17 @@ class Content(Cloud):
    
     def push(self, timeout):
 	self.log("push content up")
-        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app nest:/var")
+        if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app* /nest:/var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app/nest /nest:/var/app")
+        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress " + os.environ['NEST_FOLDER_SOURCE'] + " /nest:/var/app/source")
 
     def pull(self, timeout):
 	self.log("pull content up")
-        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app /var")
+        if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/app* /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/nest /var/app")
+        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
 
     def edit(self):
 	self.log("edit content")

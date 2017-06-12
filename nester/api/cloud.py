@@ -42,7 +42,7 @@ class Cloud(Thing):
         requests_log = logging.getLogger("requests.packages.urllib3")
         requests_log.setLevel(logging.DEBUG)
         requests_log.propagate = True
-
+        
     def create(self, url, data={}):
         filter = {}
         filter['token'] = self.auth.token

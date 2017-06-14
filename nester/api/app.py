@@ -68,10 +68,10 @@ class App(Cloud):
             self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/log /var/app")
         self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
 
+	self.os_exec("mkdir -p " + os.environ['NEST_FOLDER_SOURCE'])
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
         self.setup_git()	
-        #print "App attached. Re-start the container to begin"
 
     def allow(self, password):
         try:

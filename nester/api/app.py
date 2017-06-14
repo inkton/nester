@@ -91,7 +91,7 @@ class App(Cloud):
     def remove_owner(self):
 	self.log("removing current user")
         self.os_exec("userdel --force --remove "+os.environ['NEST_CONTACT_ID'])
-        self.os_exec("sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.D/99-forest-sudoers")
+        self.os_exec("sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("rm -rf /home/"+os.environ['NEST_CONTACT_ID'])
 	self.log("removing group")
         self.os_exec("groupdel tree")

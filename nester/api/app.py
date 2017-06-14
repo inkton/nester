@@ -62,11 +62,11 @@ class App(Cloud):
         self.create_owner()
 
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/app.nest /var/app")
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/app.json /var/app")
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/nest /var/app")
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:/var/app/log /var/app")
-        self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=30 --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
+            self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress nest:/var/app/app.nest /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress nest:/var/app/app.json /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress nest:/var/app/nest /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress nest:/var/app/log /var/app")
+        self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
 
 	self.os_exec("mkdir -p " + os.environ['NEST_FOLDER_PUBLISH'])
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")

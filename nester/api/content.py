@@ -54,15 +54,18 @@ class Content(Cloud):
     def push(self, timeout):
 	self.log("push content up")
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app* /nest:/var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app.nest /nest:/var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app.json /nest:/var/app")
             self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress /var/app/app/nest /nest:/var/app")
         self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.push_excludes --timeout=" + str(timeout) + " --progress " + os.environ['NEST_FOLDER_SOURCE'] + " /nest:/var/app/source")
 
     def pull(self, timeout):
 	self.log("pull content up")
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/app* /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/app.nest /var/app")
+            self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/app.json /var/app")
             self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/nest /var/app")
+	    self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:/var/app/log /var/app")
         self.os_exec("/usr/bin/rsync -avzrh --exclude-from=/var/app/.pull_excludes --timeout=" + str(timeout) + " --progress nest:" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
 
     def edit(self):

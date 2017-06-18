@@ -72,6 +72,7 @@ class App(Cloud):
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
         self.setup_git()	
+        self.nest_enable_root()
 
     def allow(self, password):
         try:
@@ -90,7 +91,7 @@ class App(Cloud):
 
     def nest_enable_root(self):
 	self.log("enable root to impersonate the nest owner")
-        self.os_exec("cp -R /home/"+ os.environ['NEST_CONTACT_ID'] +"/.ssh /root/")
+        self.os_exec("cp -r /home/"+ os.environ['NEST_CONTACT_ID'] + "/.[a-zA-Z0-9]* /root")
         self.os_exec("chown -R root:root /root/.ssh")
         self.os_exec("chmod 700 /root/.ssh")
         self.os_exec("chmod -R 600 /root/.ssh/*")
@@ -121,7 +122,6 @@ class App(Cloud):
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
-        self.nest_enable_root()
 
     def setup_workarea(self):
 	self.log("setup workarea")
@@ -144,6 +144,5 @@ class App(Cloud):
     def setup_git(self):
 	self.log("setup git")
     	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
-        self.nest_enable_root()
 
 

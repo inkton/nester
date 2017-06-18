@@ -88,6 +88,13 @@ class App(Cloud):
 	except Exception as e:
             print(e)
 
+    def nest_enable_root(self):
+	self.log("enable root to impersonate the nest owner")
+        self.os_exec("cp -R /home/"+ os.environ['NEST_CONTACT_ID'] +"/.ssh /root/")
+        self.os_exec("chown -R root:root /root/.ssh")
+        self.os_exec("chmod 700 /root/.ssh")
+        self.os_exec("chmod -R 600 /root/.ssh/*")
+
     def remove_owner(self):
 	self.log("removing current user")
         self.os_exec("userdel --force --remove "+os.environ['NEST_CONTACT_ID'])
@@ -114,6 +121,7 @@ class App(Cloud):
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
+        self.nest_enable_root()
 
     def setup_workarea(self):
 	self.log("setup workarea")
@@ -136,7 +144,6 @@ class App(Cloud):
     def setup_git(self):
 	self.log("setup git")
     	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
-        self.os_exec("cp /home/"+ os.environ['NEST_CONTACT_ID'] +"/.gitconfig /root/")
-        self.os_exec("cp -R /home/"+ os.environ['NEST_CONTACT_ID'] +"/.ssh /root/")
+        self.nest_enable_root()
 
 

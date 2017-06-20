@@ -100,6 +100,7 @@ class Thing(object):
             self.log("result - " + proc.stdout.read())	
         else:
             proc = Popen(cmd, shell=True, close_fds=True)
+	return proc.returncode
 
     def remove_folder_content(self, folder):
 	for the_file in os.listdir(folder):

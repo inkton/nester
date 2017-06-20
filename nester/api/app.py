@@ -68,7 +68,6 @@ class App(Cloud):
             self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress "+ host +":/var/app/log /var/app")
         self.os_exec("/usr/bin/rsync -avzrh --timeout=30 --progress "+ host +":" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
 
-	self.os_exec("mkdir -p " + os.environ['NEST_FOLDER_PUBLISH'])
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
         self.setup_git()	

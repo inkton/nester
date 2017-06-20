@@ -97,7 +97,8 @@ class Thing(object):
         if log:
             proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
             self.log(cmd)	
-            self.log("result - " + proc.stdout.read())	
+            self.log("return code - " + str(proc.returncode))	
+            self.log("std/err out - " + proc.stdout.read())	
         else:
             proc = Popen(cmd, shell=True, close_fds=True)
 	return proc.returncode

@@ -61,13 +61,14 @@ class App(Cloud):
         self.remove_owner()
         self.create_owner()
 	host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
- 
+	rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.key -o StrictHostKeyChecking=no' "
+
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-            self.os_exec("/usr/bin/rsync -avzrhe 'ssh -o StrictHostKeyChecking=no' --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
-            self.os_exec("/usr/bin/rsync -avzrhe 'ssh -o StrictHostKeyChecking=no' --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
-            self.os_exec("/usr/bin/rsync -avzrhe 'ssh -o StrictHostKeyChecking=no' --timeout=120 --progress "+ host +":/var/app/nest /var/app")
-            self.os_exec("/usr/bin/rsync -avzrhe 'ssh -o StrictHostKeyChecking=no' --timeout=120 --progress "+ host +":/var/app/log /var/app")
-        self.os_exec("/usr/bin/rsync -avzrhe 'ssh -o StrictHostKeyChecking=no'  --timeout=120 --progress "+ host +":" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
+            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
+            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
+            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/nest /var/app")
+            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
+        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
         
 	self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()

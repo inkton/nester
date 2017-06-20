@@ -18,7 +18,7 @@ from auth import Auth
 class Deployment(Cloud):
 
     def __init__(self, auth):
-        super(Deployment, self).__init__('deployments', auth)
+        super(Deployment, self).__init__('deployment', auth)
 
     def new_copy(self, object):
         new_entity = Deployment(self.auth) 

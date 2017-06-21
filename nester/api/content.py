@@ -17,7 +17,7 @@ from cloud import Cloud
 class Content(Cloud):
 
     def __init__(self, auth):
-        super(Cloud, self).__init__('contents', auth)
+        super(Cloud, self).__init__('content', auth)
 
     def parse_command(self, subparsers):
         cmd_parser = subparsers.add_parser('content', help='Manage contents')

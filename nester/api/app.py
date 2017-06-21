@@ -61,7 +61,7 @@ class App(Cloud):
         self.remove_owner()
         self.create_owner()
 	host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
-	rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.key -o StrictHostKeyChecking=no' "
+	rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
 
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
@@ -113,10 +113,10 @@ class App(Cloud):
         self.os_exec("touch /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("echo '"+os.environ['NEST_CONTACT_ID']+"	ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("mkdir /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
-        self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /var/app/.ckey")
-        self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /var/app/.tkey")
-	self.os_exec("cp /var/app/.ckey /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
-	self.os_exec("cp /var/app/.tkey /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts"")
+        self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /var/app/.contact_key")
+        self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /var/app/.tree_key")
+	self.os_exec("cp /var/app/.contact_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
+	self.os_exec("cp /var/app/.tree_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
         self.os_exec("ssh-keygen -f /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa -y > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa.pub")
         self.os_exec("cat /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa.pub > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/authorized_keys")

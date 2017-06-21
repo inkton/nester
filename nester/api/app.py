@@ -132,16 +132,11 @@ class App(Cloud):
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)
-        self.os_exec("sudo su - "+ user +" -c \"git config --global user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
-        self.os_exec("sudo su - "+ user +" -c \"git config --global user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.co checkout\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.br branch\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.ci commit\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.st status\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.unstage 'reset HEAD --'\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global alias.last 'log -1 HEAD'\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global core.autocrlf false\"")
-        self.os_exec("sudo su - "+ user +" -c \"git config --global push.default simple\"")
+	git_config = "sudo su - "+ user +" -c \"git config --file " + os.environ['NEST_FOLDER_SOURCE'] + "/.git/config ";
+        self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
+        self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
+        self.os_exec(git_config + " core.autocrlf false\"")
+        self.os_exec(git_config + " push.default simple\"")
 
     def setup_git(self):
 	self.log("setup git")

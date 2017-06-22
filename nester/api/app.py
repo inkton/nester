@@ -30,6 +30,9 @@ class App(Cloud):
         app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
         app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
+        app_cmd_parsers.add_parser('test_restore', help='Restore the project for testing')
+        app_cmd_parsers.add_parser('test_build', help='Build the project for testing')
+        app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
 
         allow_cmd = app_cmd_parsers.add_parser('allow', help='Get update permission to the app')
 	allow_cmd.add_argument('-p', '--password', type=str, help='The password')
@@ -46,6 +49,10 @@ class App(Cloud):
             cmd_handled = True
             if (args.app_command == 'attach'):
                self.attach()
+            elif (args.app_command == 'test_restore'):
+               self.test_restore()
+            elif (args.app_command == 'test_build'):
+               self.test_build()
             elif (args.app_command == 'allow'):
                self.allow(args.password)
             elif (args.app_command == 'revoke'):
@@ -129,6 +136,19 @@ class App(Cloud):
 	self.log("setup workarea")
         self.os_exec("echo publish/ > /var/app/.push_excludes")
         self.os_exec("echo publish/ > /var/app/.pull_excludes")
+        self.os_exec("mkdir -p /var/app_shadow/source")
+        self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
+        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/{bin,obj}" )
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'] )
+        self.os_exec("dotnet publish /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug -o " + os.environ['NEST_FOLDER_PUBLISH'] )
+
+    def test_restore(self):
+	self.log("test restore")
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'] )
+
+    def test_build(self):
+	self.log("test build")
+        self.os_exec("dotnet publish /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug -o " + os.environ['NEST_FOLDER_PUBLISH'] )
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)

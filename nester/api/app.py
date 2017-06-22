@@ -136,6 +136,7 @@ class App(Cloud):
 	self.log("setup workarea")
         self.os_exec("echo publish/ > /var/app/.push_excludes")
         self.os_exec("echo publish/ > /var/app/.pull_excludes")
+        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'])
         self.os_exec("mkdir -p /var/app_shadow/source")
         self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
         self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/{bin,obj}" )

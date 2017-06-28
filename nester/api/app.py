@@ -149,7 +149,8 @@ class App(Cloud):
 
     def test_build(self):
 	self.log("test build")
-        self.os_exec("dotnet publish /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug -o " + os.environ['NEST_FOLDER_PUBLISH'] )
+        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'] )
+        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug " )
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)

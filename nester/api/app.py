@@ -148,8 +148,8 @@ class App(Cloud):
     def setup_web_statics(self):
 	self.log("setup webstatic")
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/wwwroot/*")
-            self.os_exec("rsync -aHAX /var/app/source/" + os.environ['NEST_TAG'] + "/wwwroot /var/app_shadow/source/wwwroot")
+       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/wwwroot")
+            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG'] + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG'])
 
     def test_restore(self):
 	self.log("test restore")

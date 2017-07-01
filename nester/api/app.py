@@ -159,6 +159,9 @@ class App(Cloud):
 	self.log("test build")
 	self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
         self.os_exec("cp -rs " + os.environ['NEST_FOLDER_APP'] + "/source/shared /var/app_shadow/source")
+	# remove dangling symbolic links
+	self.os_exec("find /var/app_shadow/source -xtype l -delete")
+
         self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'] )
         self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug ", False)
         self.setup_web_statics()

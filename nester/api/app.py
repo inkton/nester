@@ -142,7 +142,7 @@ class App(Cloud):
         self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
         self.os_exec("cp -rs " + os.environ['NEST_FOLDER_APP'] + "/source/shared /var/app_shadow/source")
         self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/{bin,obj}" )
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'] )
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'], False)
         self.setup_web_statics()
 
     def setup_web_statics(self):
@@ -153,12 +153,14 @@ class App(Cloud):
 
     def test_restore(self):
 	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'] )
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'], False)
 
     def test_build(self):
 	self.log("test build")
+	self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
+        self.os_exec("cp -rs " + os.environ['NEST_FOLDER_APP'] + "/source/shared /var/app_shadow/source")
         self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'] )
-        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug " )
+        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug ", False)
         self.setup_web_statics()
 
     def setup_git_for_user(self, user):

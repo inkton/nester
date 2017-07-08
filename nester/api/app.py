@@ -148,12 +148,12 @@ class App(Cloud):
     def setup_web_statics(self):
 	self.log("setup webstatic")
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'] + "/wwwroot")
-            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG'] + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG'])
+       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() + "/wwwroot")
+            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG'].capitalize() + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG'])
 
     def test_restore(self):
 	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'], False)
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize(), False)
 
     def test_build(self):
 	self.log("test build")
@@ -162,8 +162,8 @@ class App(Cloud):
 	# remove dangling symbolic links
 	self.os_exec("find /var/app_shadow/source -xtype l -delete")
 
-        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'] )
-        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'] + " -c Debug ", False)
+        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() )
+        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() + " -c Debug ", False)
         self.setup_web_statics()
 
     def setup_git_for_user(self, user):

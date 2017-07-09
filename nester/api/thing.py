@@ -47,8 +47,14 @@ class Thing(object):
     def get_source_folder(self):
         return os.environ['NEST_FOLDER_SOURCE'];  
 
+    def get_source_target_folder(self):
+        return os.environ['NEST_FOLDER_SOURCE'] + '/' + os.environ['NEST_TAG_CAP'];  
+
     def get_publish_folder(self):
         return os.environ['NEST_FOLDER_PUBLISH'];  
+
+    def get_publish_target_folder(self):
+        return os.environ['NEST_FOLDER_PUBLISH'] + '/' + os.environ['NEST_TAG_CAP'];  
 
     def get_twig_folder(self):
         return os.environ['NEST_FOLDER_TWIGS'];  

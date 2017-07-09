@@ -76,7 +76,7 @@ class App(Cloud):
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/nest /var/app")
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
-        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + os.environ['NEST_FOLDER_SOURCE'] + " /var/app/source")
+        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + " /var/app/source")
         
 	self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
@@ -137,38 +137,38 @@ class App(Cloud):
 	self.log("setup workarea")
         self.os_exec("echo publish/ > /var/app/.push_excludes")
         self.os_exec("echo publish/ > /var/app/.pull_excludes")
-        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize())
+        self.os_exec("rm -rf " + self.get_source_target_folder())
         self.os_exec("mkdir -p /var/app_shadow/source")
-        self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
-        self.os_exec("cp -rs " + os.environ['NEST_FOLDER_APP'] + "/source/shared /var/app_shadow/source")
-        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() + "/{bin,obj}" )
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize(), False)
+        self.os_exec("cp -rs " + self.get_source_target_folder() + " /var/app_shadow/source")
+        self.os_exec("cp -rs " + self.get_source_shared_folder() + " /var/app_shadow/source")
+        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + "/{bin,obj}" )
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'], False)
         self.setup_web_statics()
 
     def setup_web_statics(self):
 	self.log("setup webstatic")
         if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() + "/wwwroot")
-            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG'].capitalize() + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG'])
+       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + "/wwwroot")
+            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG_CAP'] + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'])
 
     def test_restore(self):
 	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize(), False)
+        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'], False)
 
     def test_build(self):
 	self.log("test build")
-	self.os_exec("cp -rs " + os.environ['NEST_FOLDER_SOURCE'] + " /var/app_shadow/source")
-        self.os_exec("cp -rs " + os.environ['NEST_FOLDER_APP'] + "/source/shared /var/app_shadow/source")
+	self.os_exec("cp -rs " + self.get_source_target_folder() + " /var/app_shadow/source")
+        self.os_exec("cp -rs " + self.get_source_shared_folder() + " /var/app_shadow/source")
 	# remove dangling symbolic links
 	self.os_exec("find /var/app_shadow/source -xtype l -delete")
 
-        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() )
-        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG'].capitalize() + " -c Debug ", False)
+        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] )
+        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + " -c Debug ", False)
         self.setup_web_statics()
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)
-	git_config = "sudo su - "+ user +" -c \"git config --file " + os.environ['NEST_FOLDER_SOURCE'] + "/.git/config ";
+	git_config = "sudo su - "+ user +" -c \"git config --file " + self.get_source_target_folder() + "/.git/config ";
         self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
         self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
         self.os_exec(git_config + " core.autocrlf false\"")

@@ -136,34 +136,22 @@ class App(Cloud):
 	self.log("setup workarea")
         self.os_exec("echo publish/ > /var/app/.push_excludes")
         self.os_exec("echo publish/ > /var/app/.pull_excludes")
-	self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'])
-        self.os_exec("mkdir -p /var/app_shadow/source")
-        self.os_exec("cp -rs " + self.get_source_target_folder() + " /var/app_shadow/source")
-        self.os_exec("cp -rs " + self.get_source_shared_folder() + " /var/app_shadow/source")
-        self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + "/{bin,obj}" )
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'], False)
-        self.setup_web_statics()
 
-    def setup_web_statics(self):
-	self.log("setup webstatic")
-        if (os.environ['NEST_PLATFORM_TAG'] != 'worker'):
-       	    self.os_exec("rm -rf /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + "/wwwroot")
-            self.os_exec("rsync -a /var/app/source/" + os.environ['NEST_TAG_CAP'] + "/wwwroot /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'])
-
-    def test_restore(self):
+    def restore(self):
 	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'], False)
+        self.os_exec("dotnet restore --packages /var/app/packages " + self.get_source_target_folder(), False)
 
-    def test_build(self):
-	self.log("test build")
-	self.os_exec("cp -rs " + self.get_source_target_folder() + " /var/app_shadow/source")
-        self.os_exec("cp -rs " + self.get_source_shared_folder() + " /var/app_shadow/source")
-	# remove dangling symbolic links
-	self.os_exec("find /var/app_shadow/source -xtype l -delete")
+    def build(self):
+	self.log("build")
+        self.os_exec("dotnet build " + self.get_source_target_folder() + " -c Debug ", False)
 
-        self.os_exec("dotnet clean /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] )
-        self.os_exec("dotnet build /var/app_shadow/source/" + os.environ['NEST_TAG_CAP'] + " -c Debug ", False)
-        self.setup_web_statics()
+    def clean(self):
+	self.log("clean")
+        self.os_exec("dotnet clean " + self.get_source_target_folder())
+ 
+    def remove_build_folders(self):
+	self.log("remove build folders")
+        self.os_exec("rm -rf " + self.get_source_target_folder() + "/{obj,bin}")
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)

@@ -158,7 +158,8 @@ class App(Cloud):
  
     def clear(self):
 	self.log("remove build folders")
-        self.os_exec("rm -rf " + self.get_source_target_folder() + "/{obj,bin}")
+        self.os_exec("rm -rf " + self.get_source_target_folder() + "/obj")
+	self.os_exec("rm -rf " + self.get_source_target_folder() + "/bin")
 
     def setup_git_for_user(self, user):
 	self.log("setup git for user " + user)

@@ -30,15 +30,18 @@ class App(Cloud):
         app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
         app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
-        app_cmd_parsers.add_parser('test_restore', help='Restore the project for testing')
-        app_cmd_parsers.add_parser('test_build', help='Build the project for testing')
+        app_cmd_parsers.add_parser('restore', help='Restore the project')
+        app_cmd_parsers.add_parser('clear', help='Clear the project')
+        app_cmd_parsers.add_parser('clean', help='Clean the project')
+        app_cmd_parsers.add_parser('build', help='Build the project')
+
         app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
 
         allow_cmd = app_cmd_parsers.add_parser('allow', help='Get update permission to the app')
 	allow_cmd.add_argument('-p', '--password', type=str, help='The password')
 
         app_cmd_parsers.add_parser('revoke', help='Revoke update permission to the app')
-        app_cmd_parsers.add_parser('clear', help='Clear cache')
+        app_cmd_parsers.add_parser('uncache', help='Clear cache')
 
     def exec_command(self, args):
 	self.set_log(args.log)
@@ -49,15 +52,19 @@ class App(Cloud):
             cmd_handled = True
             if (args.app_command == 'attach'):
                self.attach()
-            elif (args.app_command == 'test_restore'):
-               self.test_restore()
-            elif (args.app_command == 'test_build'):
-               self.test_build()
+            elif (args.app_command == 'restore'):
+               self.restore()
+            elif (args.app_command == 'build'):
+               self.build()
+            elif (args.app_command == 'clear'):
+               self.clear()
+            elif (args.app_command == 'clean'):
+               self.clean()
             elif (args.app_command == 'allow'):
                self.allow(args.password)
             elif (args.app_command == 'revoke'):
                self.revoke()
-            elif (args.app_command == 'clear'):
+            elif (args.app_command == 'uncache'):
 	       self.clear_cache()
             else:
             	cmd_handled = False
@@ -149,7 +156,7 @@ class App(Cloud):
 	self.log("clean")
         self.os_exec("dotnet clean " + self.get_source_target_folder())
  
-    def remove_build_folders(self):
+    def clear(self):
 	self.log("remove build folders")
         self.os_exec("rm -rf " + self.get_source_target_folder() + "/{obj,bin}")
 

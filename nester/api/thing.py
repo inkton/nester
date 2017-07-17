@@ -50,8 +50,14 @@ class Thing(object):
     def get_source_shared_folder(self):
         return os.environ['NEST_FOLDER_SOURCE_SHARED'];  
 
+    def get_source_shared_git_branch(self):
+        return 'shared-master';  
+
     def get_source_target_folder(self):
         return os.environ['NEST_FOLDER_SOURCE'] + '/' + os.environ['NEST_TAG_CAP'];  
+
+    def get_source_target_git_branch(self):
+        return os.environ['NEST_TAG'] + '-master'  
 
     def get_publish_folder(self):
         return os.environ['NEST_FOLDER_PUBLISH'];  

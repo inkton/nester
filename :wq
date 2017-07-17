@@ -85,11 +85,11 @@ class App(Cloud):
         self.os_exec("git clone nest:repository.git /var/app/source/shared")
         self.os_exec("cp -R /var/app/source/shared " + self.get_source_target_folder())
       
-	self.os_exec("cd /var/app/source/shared && git checkout " + self.get_source_shared_git_branch())
-        self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
+	self.os_exec("git --work-tree=/var/app/source/shared checkout " + self.get_source_shared_git_branch())
+        self.os_exec("git --work-tree=" + self.get_source_target_folder() + " checkout " + self.get_source_shared_git_branch())
 
-        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
-        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + " /var/app/source")
+        #self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
+        #self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + " /var/app/source")
         
 	self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()

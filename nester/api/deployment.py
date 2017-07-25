@@ -22,7 +22,7 @@ class Deployment(Cloud):
 
     def new_copy(self, object):
         new_entity = Deployment(self.auth) 
-	new_entity.__dict__.update(object)
+        new_entity.__dict__.update(object)
         return new_entity
 
     def parse_command(self, subparsers):
@@ -33,36 +33,33 @@ class Deployment(Cloud):
         app_cmd_parsers.add_parser('publish', help='Publish the source in the remote folder')
 
     def exec_command(self, args):
-	self.set_log(args.log)
+        self.set_log(args.log)
         cmd_handled = False
         if args.command == self.subject:
- 	    self.log("handle deployment command")
+            self.log("handle deployment command")
             cmd_handled = True
             if (args.dep_command == 'update'):
-               self.change()
+                self.change()
             elif (args.dep_command == 'publish'):
-               self.publish()
+                self.publish()
             else:
-            	cmd_handled = False
+                cmd_handled = False
             self.end_cmd()
         return cmd_handled
 
     def change(self):
         try:
-	    if (self.confirm("This will deploy the latest structural changes.\n"+
-               "Make sure the code has been checked-in and properly backed up.\n"+ 
-               "A new devkit will be emailed. Use the updated devkit for any\n"+ 
-               "further work", default="no")) :
-            	data = self.update("apps/{0}/deployment".
+            if (self.confirm("This will deploy the latest structural changes.\n"+
+                "Make sure the code has been checked-in and properly backed up.\n"+ 
+                "A new devkit will be emailed. Use the updated devkit for any\n"+ 
+                "further work", default="no")) :
+                    data = self.update("apps/{0}/deployment".
 			format(os.environ['NEST_APP_ID']), {})
-
-	except Exception as e:
-            print(e)
+        except Exception as e:
+                print(e)
 
     def publish(self):
         try:
             self.os_exec("ssh nest 'deploy'", False)
-	except Exception as e:
-            print(e)
-
-
+        except Exception as e:
+                print(e)

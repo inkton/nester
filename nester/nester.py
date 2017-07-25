@@ -24,6 +24,7 @@ from api.domain import Domain
 from api.contact import Contact
 from api.devkit import DevKit
 from api.deployment import Deployment
+from api.data import Data
 
 class Nester(object):
     
@@ -34,31 +35,32 @@ class Nester(object):
         parser.add_argument('-l', '--log', type=str, required=False, help='The output log file')
         subparsers = parser.add_subparsers(dest='command', help='sub commands')
 
-	auth = Auth(os.environ['NEST_CONTACT_EMAIL'])
-	if auth.load():
-           auth.get_token()
-           auth.save()
+        auth = Auth(os.environ['NEST_CONTACT_EMAIL'])
+        if auth.load():
+            auth.get_token()
+            auth.save()
 
         objects = [
-                App(auth),
-                #Forest(auth),
-                #Tree(auth),
-                Content(auth),
-                Nest(auth),
-                    #Domain(auth),
-                    #Certificate(auth),
-	        #Contact(auth),
-		#DevKit(auth),
-		Deployment(auth)
-	]
+            App(auth),
+            #Forest(auth),
+            #Tree(auth),
+            Content(auth),
+            Nest(auth),
+            #Domain(auth),
+            #Certificate(auth),
+            #Contact(auth),
+            #DevKit(auth),
+            Deployment(auth),
+            Data(auth)
+        ]
 
-	for the_obj in objects:
+        for the_obj in objects:
             the_obj.parse_command(subparsers)
 
         args = parser.parse_args()
-	print('\n')
-	
-	for the_obj in objects:
+        print('\n')
+
+        for the_obj in objects:
             if the_obj.exec_command(args) == True:
                 break
 

@@ -37,12 +37,36 @@ class Thing(object):
         except OSError as exception:
 	   if exception.errno != errno.EEXIST:
 	       raise FailedValidation('Unable to create settings directory ' + self.home)
+           
+    def get_app_id(self):
+        return os.environ['NEST_APP_ID'];
+
+    def get_app_tag(self):
+        return os.environ['NEST_APP_TAG'];
+
+    def get_app_tag_capitalized(self):
+        return os.environ['NEST_APP_TAG_CAP'];
+
+    def get_app_name(self):
+        return os.environ['NEST_APP_NAME'];
+
+    def get_app_type(self):
+        return os.environ['NEST_APP_TYPE'];
+
+    def get_platform_tag(self):
+        return os.environ['NEST_PLATFORM_TAG'];
+
+    def get_nest_id(self):
+        return os.environ['NEST_ID'];
+
+    def get_nest_name(self):
+        return os.environ['NEST_NAME'];
 
     def get_folder(self):
-	return (self.home) + '/' + self.subject
+	    return (self.home) + '/' + self.subject
 
     def get_app_folder(self):
-        return os.environ['NEST_FOLDER_APP'];  
+        return os.environ['NEST_FOLDER_APP'];
 
     def get_source_folder(self):
         return os.environ['NEST_FOLDER_SOURCE'];  

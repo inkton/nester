@@ -50,11 +50,33 @@ class Data(Cloud):
     def pull(self):
         try:
             self.os_exec("ssh nest '/usr/sbin/save-db'", False)
+            host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
+            rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
+            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared/Database /var/app/source/shared")
+
+            self.os_exec("mysql --user " + self.get_app_tag() + " -p" + 
+                self.get_services_password() + " --host " + 
+                self.get_mysql_host() + " " + self.get_app_tag() + " < /var/app/source/shared/Database/ddl.sql")
+            self.os_exec("mysql --user " + self.get_app_tag() + " -p" + 
+                self.get_services_password() + " --host " + 
+                self.get_mysql_host() + " " + self.get_app_tag() + " < /var/app/source/shared/Database/dml.sql")
+
         except Exception as e:
             print(e)
 
     def push(self):
         try:
-            self.os_exec("ssh nest '/usr/sbin/load-db'", False)
+            self.os_exec("mysqldump --no-data --user " + self.get_app_tag() + " -p" + 
+                self.get_services_password() + " --host " + 
+                self.get_mysql_host() + " " + self.get_app_tag() + " > /var/app/source/shared/Database/ddl.sql")
+            self.os_exec("mysqldump --no-create-db --no-create-info --user " + self.get_app_tag() + " -p" +
+                self.get_services_password() + " --host " + 
+                self.get_mysql_host() + " " + self.get_app_tag() + " > /var/app/source/shared/Database/dml.sql")
+
+            host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
+            rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
+            self.os_exec(rsync_cmd + " --timeout=120 --progress /var/app/source/shared/Database "+ host +":/var/app/source/shared")
+
+            self.os_exec("ssh nest '/usr/sbin/load-db'", False)            
         except Exception as e:
             print(e)

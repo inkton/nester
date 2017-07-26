@@ -94,7 +94,13 @@ class Thing(object):
 
     def get_twig_utils_folder(self):
         return os.environ['NEST_FOLDER_TWIG_UTILS'];  
- 
+
+    def get_services_password(self):
+        return os.environ['NEST_SERVICES_PASSWORD'];  
+
+    def get_mysql_host(self):
+        return os.environ['NEST_MYSQL_HOST'];      
+
     def clear_cache(self):
 	self.remove_folder_content(self.get_folder())
 

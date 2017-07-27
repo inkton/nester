@@ -149,6 +149,8 @@ class Thing(object):
             self.log("std/err out - " + proc.stdout.read())	
         else:
             proc = Popen(cmd, shell=True, close_fds=True)
+	proc.communicate()
+	proc.wait()
 	return proc.returncode
 
     def remove_folder_content(self, folder):

@@ -71,6 +71,8 @@ class App(Cloud):
             return cmd_handled
 
     def attach(self):
+        self.os_exec("mkdir /var/app/log")
+	
         self.remove_owner()
         self.create_owner()
 
@@ -79,6 +81,8 @@ class App(Cloud):
 
         if not os.path.isdir("/tmp/source"):
             self.os_exec("git clone nest:repository.git /tmp/source")
+
+	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
             self.os_exec("cp -R /tmp/source " + self.get_source_shared_folder())
             self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")

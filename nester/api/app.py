@@ -77,11 +77,14 @@ class App(Cloud):
         self.remove_owner()
         self.create_owner()
 
+        # there is a latency for  ssh info to take effect.
+        # as such the ssh info need us ssh info directly here.
+
         host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
         rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
 
-        if not os.path.isdir("/tmp/source"):
-            self.os_exec("git clone nest:repository.git /tmp/source")
+        if not os.path.isdir("/tmp/source"):            
+            self.os_exec("ssh-agent $(ssh-add /var/app/.contact_key; git clone "+host+":repository.git /tmp/source)")            
 
     	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
             self.os_exec("mkdir -p " + self.get_source_shared_folder())
@@ -91,11 +94,10 @@ class App(Cloud):
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
-
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
             self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress "+ host +":/var/app/nest /var/app")
 
-	    self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
+        self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
         self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
         self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
 
@@ -131,7 +133,7 @@ class App(Cloud):
         self.os_exec("userdel --force --remove "+os.environ['NEST_CONTACT_ID'])
         self.os_exec("sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("rm -rf /home/"+os.environ['NEST_CONTACT_ID'])
-	self.log("removing group")
+        self.log("removing group")
         self.os_exec("groupdel tree")
 
     def create_owner(self):

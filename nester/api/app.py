@@ -71,9 +71,6 @@ class App(Cloud):
             return cmd_handled
 
     def attach(self):
-        self.os_exec("mkdir -p " + self.get_log_folder())
-        self.os_exec("mkdir -p " + self.get_source_target_folder())
-	
         self.remove_owner()
         self.create_owner()
 
@@ -83,10 +80,16 @@ class App(Cloud):
         host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
         rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
 
-        if not os.path.isdir("/tmp/source"):            
-            self.os_exec("ssh-agent $(ssh-add /var/app/.contact_key; git clone "+host+":repository.git /tmp/source)")            
+        self.os_exec("rm -rf " + self.get_source_target_folder())
+        self.os_exec("mkdir -p " + self.get_source_target_folder())
+	
+        if not os.path.isdir("/tmp/source"):
+            with open("/tmp/ssh_cert", "w") as text_file:
+                text_file.write("#!/bin/bash\nssh -i /var/app/.contact_key $1 $2") 
+            self.os_exec("GIT_SSH=/tmp/ssh_cert; git clone "+host+":repository.git /tmp/source")            
 
     	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
+            self.os_exec("rm -rf " + self.get_source_shared_folder())
             self.os_exec("mkdir -p " + self.get_source_shared_folder())
             self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
             self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())

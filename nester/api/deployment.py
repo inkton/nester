@@ -60,6 +60,8 @@ class Deployment(Cloud):
 
     def publish(self):
         try:
+            host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
+            rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "            
             self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
             self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress " + self.get_source_shared_folder() + "/ "+ host +":" + self.get_source_shared_folder() + "/ ")
             self.os_exec(rsync_cmd + " --timeout=60 --progress /var/app/app.nest "+ host +":/var/app")

@@ -87,7 +87,7 @@ class App(Cloud):
             self.os_exec("mkdir -p " + self.get_source_shared_folder())
             self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
             self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-            self.os_exec(rsync_cmd + " --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
+            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
@@ -97,7 +97,7 @@ class App(Cloud):
 
 	    self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
         self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
-        self.os_exec(rsync_cmd + " --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
+        self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
 
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()

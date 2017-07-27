@@ -68,6 +68,9 @@ class Thing(object):
     def get_app_folder(self):
         return os.environ['NEST_FOLDER_APP'];
 
+    def get_log_folder(self):
+        return os.environ['NEST_FOLDER_LOG'];  
+
     def get_source_folder(self):
         return os.environ['NEST_FOLDER_SOURCE'];  
 

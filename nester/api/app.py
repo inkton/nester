@@ -71,7 +71,8 @@ class App(Cloud):
             return cmd_handled
 
     def attach(self):
-        self.os_exec("mkdir /var/app/log")
+        self.os_exec("mkdir -p " + self.get_log_folder())
+        self.os_exec("mkdir -p " + self.get_source_target_folder())
 	
         self.remove_owner()
         self.create_owner()
@@ -82,20 +83,22 @@ class App(Cloud):
         if not os.path.isdir("/tmp/source"):
             self.os_exec("git clone nest:repository.git /tmp/source")
 
-	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
-            self.os_exec("cp -R /tmp/source " + self.get_source_shared_folder())
+    	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
+            self.os_exec("mkdir -p " + self.get_source_shared_folder())
+            self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
             self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
+            self.os_exec(rsync_cmd + " --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
-            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/nest /var/app")
 
-        self.os_exec("cp -R /tmp/source " + self.get_source_target_folder())
+            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
+            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress "+ host +":/var/app/nest /var/app")
+
+	    self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
         self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
-        self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + " /var/app/source")
-        
+        self.os_exec(rsync_cmd + " --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
+
         self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
         self.setup_workarea()
         self.setup_git()
@@ -153,8 +156,8 @@ class App(Cloud):
 
     def setup_workarea(self):
     	self.log("setup workarea")
-        self.os_exec("echo publish/ > /var/app/.push_excludes")
-        self.os_exec("echo publish/ > /var/app/.pull_excludes")
+        #self.os_exec("echo publish/ > /var/app/.push_excludes")
+        #self.os_exec("echo publish/ > /var/app/.pull_excludes")
 
     def restore(self):
     	self.log("test restore")

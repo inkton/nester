@@ -60,6 +60,13 @@ class Deployment(Cloud):
 
     def publish(self):
         try:
+            self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
+            self.os_exec(rsync_cmd + " --exclude=bin --exclude=obj --timeout=120 --progress " + self.get_source_shared_folder() + "/ "+ host +":" + self.get_source_shared_folder() + "/ ")
+            self.os_exec(rsync_cmd + " --timeout=60 --progress /var/app/app.nest "+ host +":/var/app")
+            self.os_exec(rsync_cmd + " --timeout=60 --progress /var/app/app.json "+ host +":/var/app")
+            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress /var/app/nest "+ host +":/var/app")
+
+            self.os_exec(rsync_cmd + "--exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress " + self.get_source_target_folder() + "/ "+ host + ":" + self.get_source_target_folder() + "/")
             self.os_exec("ssh nest 'deploy'", False)
         except Exception as e:
                 print(e)

@@ -79,16 +79,14 @@ class App(Cloud):
 
         if not os.path.isdir("/tmp/source"):
             self.os_exec("git clone nest:repository.git /tmp/source")
-
-        if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
+            self.os_exec("cp -R /tmp/source " + self.get_source_shared_folder())
+            self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
+            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
+            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
             self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/nest /var/app")
-            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
-            self.os_exec("cp -R /tmp/source " + self.get_source_shared_folder())
-            self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared /var/app/source")
 
         self.os_exec("cp -R /tmp/source " + self.get_source_target_folder())
         self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())

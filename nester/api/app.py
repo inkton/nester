@@ -77,7 +77,7 @@ class App(Cloud):
         # there is a latency for  ssh info to take effect.
         # as such the ssh info need us ssh info directly here.
 
-        host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
+        host = os.environ['NEST_CONTACT_ID'] + '@' + self.get_tree_external_ip()
         rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
 
         self.os_exec("rm -rf " + self.get_source_target_folder())

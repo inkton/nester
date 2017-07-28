@@ -63,10 +63,13 @@ class Thing(object):
         return os.environ['NEST_NAME'];
 
     def get_folder(self):
-	    return (self.home) + '/' + self.subject
+        return (self.home) + '/' + self.subject
 
     def get_app_folder(self):
         return os.environ['NEST_FOLDER_APP'];
+
+    def get_tree_external_ip(self):
+        return os.environ['NEST_TREE_EXTERNAL_IP'];
 
     def get_log_folder(self):
         return os.environ['NEST_FOLDER_LOG'];  

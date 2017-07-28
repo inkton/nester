@@ -68,6 +68,9 @@ class Thing(object):
     def get_app_folder(self):
         return os.environ['NEST_FOLDER_APP'];
 
+    def get_hostname(self):
+        return os.environ['NEST_APP_TAG']+".nestapp.yt";
+
     def get_tree_external_ip(self):
         return os.environ['NEST_TREE_EXTERNAL_IP'];
 
@@ -105,13 +108,16 @@ class Thing(object):
         return os.environ['NEST_SERVICES_PASSWORD'];  
 
     def get_mysql_host(self):
-        return os.environ['NEST_MYSQL_HOST'];      
+        return os.environ['NEST_MYSQL_HOST'];
+
+    def get_contact_id(self):
+        return os.environ['NEST_CONTACT_ID'];
 
     def clear_cache(self):
-	self.remove_folder_content(self.get_folder())
+    	self.remove_folder_content(self.get_folder())
 
     def load_by_key(self, key):
-	obj_path = self.get_folder() + '/' + key + '.json'
+        obj_path = self.get_folder() + '/' + key + '.json'
         if not os.path.exists(obj_path):
             return False
         else:
@@ -120,28 +126,28 @@ class Thing(object):
             return True
 
     def save_by_key(self, key):
-	obj_path = self.get_folder() + '/' + key + '.json'
+        obj_path = self.get_folder() + '/' + key + '.json'
         open(obj_path, 'w').write(jsonpickle.encode(self))
 
     def set_log(self, logfile):
-	self.logfile = logfile
+    	self.logfile = logfile
 
     def log(self, message, echo_this=False):
-	line_out = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ---> " + message + '\n';
-	if echo_this:
-           print(line_out)
-	if self.logfile is not None:
-	        outfile = open(self.logfile, 'a');
-		outfile.write(line_out)
-		outfile.close()
+        line_out = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " ---> " + message + '\n';
+        if echo_this:
+            print(line_out)
+        if self.logfile is not None:
+            outfile = open(self.logfile, 'a');
+            outfile.write(line_out)
+            outfile.close()
 
     def end_cmd(self, message=None):
-	line_out = '\n';
+        line_out = '\n';
         if message:
-           line_out += message + '\n';
-	line_out += 'OK';
+            line_out += message + '\n';
+            line_out += 'OK';
         print(line_out)
-	self.log(line_out);
+        self.log(line_out);
         self.secure_workarea()
 
     def os_exec(self, cmd, log=True):
@@ -152,19 +158,19 @@ class Thing(object):
             self.log("std/err out - " + proc.stdout.read())	
         else:
             proc = Popen(cmd, shell=True, close_fds=True)
-	proc.communicate()
-	proc.wait()
-	return proc.returncode
+        proc.communicate()
+        proc.wait()
+        return proc.returncode
 
     def remove_folder_content(self, folder):
-	for the_file in os.listdir(folder):
-	    file_path = os.path.join(folder, the_file)
-	    if os.path.isfile(file_path):
-	       os.unlink(file_path)
-	    elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        for the_file in os.listdir(folder):
+            file_path = os.path.join(folder, the_file)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path): shutil.rmtree(file_path)
 
     def secure_workarea(self):
-	self.log("secure workarea")
+        self.log("secure workarea")
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
         self.os_exec("chmod -R 755 /var/app ")
 
@@ -236,22 +242,22 @@ class Thing(object):
         print(table.draw())
 
     def draw_table(self):
-	table = Texttable()
+    	table = Texttable()
         table.set_deco(Texttable.HEADER)
 	
-	self.draw_table_col_dtype(table)
-	self.draw_table_col_align(table)
-	self.draw_table_col_valign(table)
-	self.draw_table_col_width(table)
+        self.draw_table_col_dtype(table)
+        self.draw_table_col_align(table)
+        self.draw_table_col_valign(table)
+        self.draw_table_col_width(table)
 
-	rows = []
-	rows.append(self.get_table_col_header())
+        rows = []
+        rows.append(self.get_table_col_header())
 
-	for filename in os.listdir(self.get_folder()):
-	    if filename.endswith(".json"): 
+        for filename in os.listdir(self.get_folder()):
+            if filename.endswith(".json"): 
                 file_parts = filename.split('.')
                 rows.append(self.get_table_row_data(file_parts[0]))
-       		continue
-	table.add_rows( rows )
-        print(table.draw())
+                continue
+            table.add_rows( rows )
+            print(table.draw())
 

@@ -30,18 +30,9 @@ class App(Cloud):
         app_cmd_parsers = cmd_parser.add_subparsers(dest='app_command', help='App commands')
 
         app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
-        app_cmd_parsers.add_parser('restore', help='Restore the project')
-        app_cmd_parsers.add_parser('clear', help='Clear the project')
-        app_cmd_parsers.add_parser('clean', help='Clean the project')
-        app_cmd_parsers.add_parser('build', help='Build the project')
-
-        app_cmd_parsers.add_parser('attach', help='Attach to the app in the environment')
-
         allow_cmd = app_cmd_parsers.add_parser('allow', help='Get update permission to the app')
         allow_cmd.add_argument('-p', '--password', type=str, help='The password')
-
         app_cmd_parsers.add_parser('revoke', help='Revoke update permission to the app')
-        app_cmd_parsers.add_parser('uncache', help='Clear cache')
 
     def exec_command(self, args):
         self.set_log(args.log)
@@ -51,20 +42,10 @@ class App(Cloud):
             cmd_handled = True
             if (args.app_command == 'attach'):
                 self.attach()
-            elif (args.app_command == 'restore'):
-                self.restore()
-            elif (args.app_command == 'build'):
-                self.build()
-            elif (args.app_command == 'clear'):
-                self.clear()
-            elif (args.app_command == 'clean'):
-                self.clean()
             elif (args.app_command == 'allow'):
                 self.allow(args.password)
             elif (args.app_command == 'revoke'):
                 self.revoke()
-            elif (args.app_command == 'uncache'):
-                self.clear_cache()
             else:
                 cmd_handled = False
             self.end_cmd()
@@ -73,40 +54,6 @@ class App(Cloud):
     def attach(self):
         self.remove_owner()
         self.create_owner()
-
-        # there is a latency for  ssh info to take effect.
-        # as such the ssh info need us ssh info directly here.
-
-        host = os.environ['NEST_CONTACT_ID'] + '@' + self.get_tree_external_ip()
-        rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
-
-        self.os_exec("rm -rf " + self.get_source_target_folder())
-        self.os_exec("mkdir -p " + self.get_source_target_folder())
-	
-        if not os.path.isdir("/tmp/source"):
-            with open("/tmp/ssh_cert", "w") as text_file:
-                text_file.write("#!/bin/bash\nssh -i /var/app/.contact_key $1 $2") 
-            self.os_exec("GIT_SSH=/tmp/ssh_cert; git clone "+host+":repository.git /tmp/source")            
-
-    	if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
-            self.os_exec("rm -rf " + self.get_source_shared_folder())
-            self.os_exec("mkdir -p " + self.get_source_shared_folder())
-            self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
-            self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
-            self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/log /var/app")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.nest /var/app")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress "+ host +":/var/app/app.json /var/app")
-            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress "+ host +":/var/app/nest /var/app")
-
-        self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
-        self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
-        self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress "+ host +":" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
-
-        self.os_exec("/bin/bash " + self.get_twig_utils_folder() + "/create")
-        self.setup_workarea()
-        self.setup_git()
         self.nest_enable_root()
 
     def allow(self, password):
@@ -158,39 +105,3 @@ class App(Cloud):
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
-
-    def setup_workarea(self):
-    	self.log("setup workarea")
-        #self.os_exec("echo publish/ > /var/app/.push_excludes")
-        #self.os_exec("echo publish/ > /var/app/.pull_excludes")
-
-    def restore(self):
-    	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages " + self.get_source_target_folder(), False)
-
-    def build(self):
-    	self.log("build")
-        self.os_exec("dotnet build " + self.get_source_target_folder() + " -c Debug ", False)
-
-    def clean(self):
-    	self.log("clean")
-        self.os_exec("dotnet clean " + self.get_source_target_folder())
- 
-    def clear(self):
-        self.log("remove build folders")
-        self.os_exec("rm -rf " + self.get_source_target_folder() + "/obj")
-        self.os_exec("rm -rf " + self.get_source_target_folder() + "/bin")
-
-    def setup_git_for_user(self, user):
-        self.log("setup git for user " + user)
-        git_config = "sudo su - "+ user +" -c \"git config --file " + self.get_source_target_folder() + "/.git/config "
-        self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
-        self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
-        self.os_exec(git_config + " core.autocrlf false\"")
-        self.os_exec(git_config + " push.default simple\"")
-
-    def setup_git(self):
-    	self.log("setup git")
-    	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
-
-

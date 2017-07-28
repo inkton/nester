@@ -47,15 +47,15 @@ class Deployment(Cloud):
                 self.pull()
             elif (args.dep_command == 'push'):
                 self.push()
-            elif (args.app_command == 'restore'):
+            elif (args.dep_command == 'restore'):
                 self.restore()
-            elif (args.app_command == 'build'):
+            elif (args.dep_command == 'build'):
                 self.build()
-            elif (args.app_command == 'clear'):
+            elif (args.dep_command == 'clear'):
                 self.clear()
-            elif (args.app_command == 'clean'):
+            elif (args.dep_command == 'clean'):
                 self.clean()
-            elif (args.app_command == 'uncache'):
+            elif (args.dep_command == 'uncache'):
                 self.clear_cache()                
             else:
                 cmd_handled = False

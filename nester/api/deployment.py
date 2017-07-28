@@ -67,11 +67,8 @@ class Deployment(Cloud):
             self.os_exec("rm -rf " + self.get_source_target_folder())
             self.os_exec("mkdir -p " + self.get_source_target_folder())
 
-            if not os.path.isdir("/tmp/source"):
-                self.os_exec("git clone "
-                + self.get_contact_id() + "@"
-                + self.get_hostname() + ":repository.git /tmp/source")            
-
+            self.os_exec("rm -rf /tmp/source")
+            self.os_exec("git clone nest:repository.git /tmp/source")            
             rsync_cmd = "/usr/bin/rsync -avzr "
 
             if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":

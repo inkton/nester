@@ -107,7 +107,7 @@ class Deployment(Cloud):
 
     def restore(self):
     	self.log("test restore")
-        self.os_exec("dotnet restore --packages /var/app/packages " + self.get_source_target_folder(), False)
+        self.os_exec("dotnet restore " + self.get_source_target_folder(), False)
 
     def build(self):
     	self.log("build")

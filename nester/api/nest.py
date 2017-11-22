@@ -42,6 +42,7 @@ class Nest(Cloud):
         app_cmd_parsers.add_parser('down', help='Teardown this nest')
         app_cmd_parsers.add_parser('current', help='Show the current nest')
         app_cmd_parsers.add_parser('list', help='List all app nests')
+        app_cmd_parsers.add_parser('kill', help='Kill running nest')
           
         sub_cmd = app_cmd_parsers.add_parser('add', help='Add a nest')
         sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A memorable identifier. Must be lower case without spaces')
@@ -68,6 +69,9 @@ class Nest(Cloud):
                self.current()
             elif (args.nest_command == 'list'):
                self.list()
+            elif (args.nest_command == 'kill'):
+               self.os_exec("pkill dotnet")
+               self.os_exec("pkill vsdbg")
             elif (args.nest_command == 'add'):
                self.add(args.tag, args.platform, args.name,
 			args.scale, args.scale_size)

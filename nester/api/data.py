@@ -51,7 +51,7 @@ class Data(Cloud):
         try:
             self.os_exec("ssh nest '/usr/sbin/save-db'", False)
             host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
-            rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
+            rsync_cmd = "/usr/bin/rsync -avzr -e 'ssh' "
             self.os_exec(rsync_cmd + " --timeout=120 --progress "+ host +":/var/app/source/shared/Database /var/app/source/shared")
 
             self.os_exec("mysql --user " + self.get_app_tag() + " -p" + 
@@ -74,7 +74,7 @@ class Data(Cloud):
                 self.get_mysql_host() + " " + self.get_app_tag() + " > /var/app/source/shared/Database/dml.sql")
 
             host = os.environ['NEST_CONTACT_ID'] + '@' + os.environ['NEST_APP_TAG']+".nestapp.yt"
-            rsync_cmd = "/usr/bin/rsync -avzrhe 'ssh -i /var/app/.contact_key -o StrictHostKeyChecking=no' "
+            rsync_cmd = "/usr/bin/rsync -avzr 'ssh' "
             self.os_exec(rsync_cmd + " --timeout=120 --progress /var/app/source/shared/Database "+ host +":/var/app/source/shared")
 
             self.os_exec("ssh nest '/usr/sbin/load-db'", False)            

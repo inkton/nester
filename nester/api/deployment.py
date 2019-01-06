@@ -76,17 +76,17 @@ class Deployment(Cloud):
                 self.os_exec("mkdir -p " + self.get_source_shared_folder())
                 self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
                 self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-                self.os_exec(rsync_cmd + " --exclude=.git/ --exclude=bin --exclude=obj --timeout=120 --progress -e 'ssh' nest:" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
-                self.os_exec(rsync_cmd + " --timeout=120 --progress -e 'ssh' nest:/var/app/log /var/app")
+                self.os_exec(rsync_cmd + " --exclude=.git/ --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
+                self.os_exec(rsync_cmd + " --timeout=600 --progress -e 'ssh' nest:/var/app/log /var/app")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.nest /var/app")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.json /var/app")
-                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress -e 'ssh' nest:/var/app/nest /var/app")
-                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress -e 'ssh' nest:/var/app/downtime /var/app")
+                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/nest /var/app")
+                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/downtime /var/app")
 
             self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
             self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
-            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress -e 'ssh' nest:" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
+            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
 
             self.setup_git()
         except Exception as e:
@@ -96,13 +96,13 @@ class Deployment(Cloud):
         try:
             rsync_cmd = "/usr/bin/rsync -avzr "
             self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
-            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress " + self.get_source_shared_folder() + "/ -e 'ssh' nest:" + self.get_source_shared_folder() + "/ ")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress /var/app/app.nest -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --timeout=60 --progress /var/app/app.json -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress /var/app/nest -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=120 --progress /var/app/downtime -e 'ssh' nest:/var/app")
+            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_shared_folder() + "/ -e 'ssh' nest:" + self.get_source_shared_folder() + "/ ")
+            self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.nest -e 'ssh' nest:/var/app")
+            self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.json -e 'ssh' nest:/var/app")
+            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress /var/app/nest -e 'ssh' nest:/var/app")
+            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress /var/app/downtime -e 'ssh' nest:/var/app")
 
-            self.os_exec(rsync_cmd + "--exclude=.git --exclude=bin --exclude=obj --timeout=120 --progress " + self.get_source_target_folder() + "/ -e 'ssh' nest:" + self.get_source_target_folder() + "/")
+            self.os_exec(rsync_cmd + "--exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_target_folder() + "/ -e 'ssh' nest:" + self.get_source_target_folder() + "/")
             self.os_exec("ssh nest 'deploy'", False)
         except Exception as e:
                 print(e)

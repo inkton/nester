@@ -108,15 +108,15 @@ class Deployment(Cloud):
                 print(e)
 
     def restore(self):
-    	self.log("test restore")
+        self.log("test restore")
         self.os_exec("dotnet restore " + self.get_source_target_folder(), False)
 
     def build(self):
-    	self.log("build")
+        self.log("build " + self.get_source_target_folder())
         self.os_exec("dotnet build " + self.get_source_target_folder() + " -c Debug ", False)
 
     def clean(self):
-    	self.log("clean")
+        self.log("clean")
         self.os_exec("dotnet clean " + self.get_source_target_folder())
  
     def clear(self):
@@ -133,5 +133,5 @@ class Deployment(Cloud):
         self.os_exec(git_config + " push.default simple\"")
 
     def setup_git(self):
-    	self.log("setup git")
-    	self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
+        self.log("setup git")
+        self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])

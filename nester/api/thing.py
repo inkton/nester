@@ -87,7 +87,7 @@ class Thing(object):
         return 'shared-master';  
 
     def get_source_target_folder(self):
-        return os.environ['NEST_FOLDER_SOURCE'] + '/' + os.environ['NEST_TAG_CAP'];  
+        return os.environ['NEST_FOLDER_SOURCE'] + '/' + os.environ['NEST_TAG_CAP'] + '/src';
 
     def get_source_target_git_branch(self):
         return os.environ['NEST_TAG'] + '-master'  

@@ -62,31 +62,31 @@ class Deployment(Cloud):
             self.end_cmd()
         return cmd_handled
 
+    def pull_project(self, rsync_cmd, folder, branch):
+        self.os_exec("rm -rf " + folder)
+        self.os_exec("mkdir -p " + folder)
+
+        self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + folder + "/ " + folder + "/")
+
+        self.os_exec("cd " + folder + " && git init ")
+        self.os_exec("cd " + folder + " && git remote add origin nest:repository.git ")
+        self.os_exec("cd " + folder + " && git fetch ")
+        self.os_exec("cd " + folder + " && git checkout origin/" + branch + " -ft")
+
     def pull(self):
         try:
-            self.os_exec("rm -rf " + self.get_source_target_folder())
-            self.os_exec("mkdir -p " + self.get_source_target_folder())
-
-            self.os_exec("rm -rf /tmp/source")
-            self.os_exec("git clone nest:repository.git /tmp/source")
             rsync_cmd = "/usr/bin/rsync -avzr "
+            self.pull_project(rsync_cmd, self.get_source_target_folder(), self.get_source_target_git_branch())
 
             if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
-                self.os_exec("rm -rf " + self.get_source_shared_folder())
-                self.os_exec("mkdir -p " + self.get_source_shared_folder())
-                self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
-                self.os_exec("cd " + self.get_source_shared_folder() + " && git checkout " + self.get_source_shared_git_branch())
-                self.os_exec(rsync_cmd + " --exclude=.git/ --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/ ")
+                self.pull_project(rsync_cmd, self.get_source_shared_folder(), self.get_source_shared_git_branch())
+
                 self.os_exec(rsync_cmd + " --timeout=600 --progress -e 'ssh' nest:/var/app/log /var/app")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.nest /var/app")
                 self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.json /var/app")
                 self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/nest /var/app")
                 self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/downtime /var/app")
-
-            self.os_exec("rsync -r /tmp/source/ " + self.get_source_target_folder())
-            self.os_exec("cd " + self.get_source_target_folder() + " && git checkout " + self.get_source_target_git_branch())
-            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
 
             self.setup_git()
         except Exception as e:
@@ -95,7 +95,6 @@ class Deployment(Cloud):
     def push(self):
         try:
             rsync_cmd = "/usr/bin/rsync -avzr "
-            self.os_exec("rsync -r /tmp/source/ " + self.get_source_shared_folder())
             self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_shared_folder() + "/ -e 'ssh' nest:" + self.get_source_shared_folder() + "/ ")
             self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.nest -e 'ssh' nest:/var/app")
             self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.json -e 'ssh' nest:/var/app")
@@ -109,20 +108,20 @@ class Deployment(Cloud):
 
     def restore(self):
         self.log("test restore")
-        self.os_exec("dotnet restore " + self.get_source_target_folder(), False)
+        self.os_exec("dotnet restore " + self.get_source_target_source_folder(), False)
 
     def build(self):
-        self.log("build " + self.get_source_target_folder())
-        self.os_exec("dotnet build " + self.get_source_target_folder() + " -c Debug ", False)
+        self.log("build " + self.get_source_target_source_folder())
+        self.os_exec("dotnet build " + self.get_source_target_source_folder() + " -c Debug ", False)
 
     def clean(self):
         self.log("clean")
-        self.os_exec("dotnet clean " + self.get_source_target_folder())
- 
+        self.os_exec("dotnet clean " + self.get_source_target_source_folder())
+
     def clear(self):
         self.log("remove build folders")
-        self.os_exec("rm -rf " + self.get_source_target_folder() + "/obj")
-        self.os_exec("rm -rf " + self.get_source_target_folder() + "/bin")
+        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/obj")
+        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/bin")
 
     def setup_git_for_user(self, user):
         self.log("setup git for user " + user)

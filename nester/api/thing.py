@@ -95,6 +95,19 @@ class Thing(object):
     def get_source_target_test_folder(self):
         return os.environ['NEST_FOLDER_SOURCE'] + '/' + os.environ['NEST_TAG_CAP'] + '/test';
 
+    def get_source_target_test_runtime_path(self):
+        # example - /var/app/source/Themain/test/bin/Debug/netcoreapp2.1/ThemainTest.dll
+        debug_folder = self.get_source_target_test_folder() + "/bin/Debug/";
+        final_folder = os.listdir(debug_folder)[0]
+        the_runtime =  self.get_source_target_test_folder() + "/bin/Debug/" + final_folder + "/" + os.environ['NEST_TAG_CAP'] + "Test.dll"
+        return the_runtime;
+
+    def get_vtest_console_runtime_path(self):
+        # example - /usr/share/dotnet/sdk/$(dotnet --version)/vstest.console.dll
+        final_folder = os.listdir("/usr/share/dotnet/sdk/")[0]
+        the_runtime =  "/usr/share/dotnet/sdk/" + final_folder + "/vstest.console.dll"
+        return the_runtime;
+
     def get_source_target_git_branch(self):
         return os.environ['NEST_TAG'] + '-master'  
 
@@ -159,8 +172,8 @@ class Thing(object):
     def os_exec(self, cmd, log=True):
         if log:
             proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            self.log(cmd)	
-            self.log("return code - " + str(proc.returncode))	
+            self.log(cmd)
+            self.log("return code - " + str(proc.returncode))
             self.log("std/err out - " + proc.stdout.read())	
         else:
             proc = Popen(cmd, shell=True, close_fds=True)

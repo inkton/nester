@@ -7,10 +7,11 @@
 
 import errno, os, sys
 import argparse
+import re
 
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
-
+import re
 from thing import FailedValidation
 from cloud import Cloud
 from auth import Auth
@@ -35,6 +36,8 @@ class Deployment(Cloud):
         app_cmd_parsers.add_parser('clear', help='Clear the project')
         app_cmd_parsers.add_parser('clean', help='Clean the project')
         app_cmd_parsers.add_parser('build', help='Build the project')
+        app_cmd_parsers.add_parser('clean_build_tests', help='Clean build unit tests')
+        app_cmd_parsers.add_parser('unit_test_debug_host', help='Spawn unit test debug')
         app_cmd_parsers.add_parser('uncache', help='Clear cache')
 
     def exec_command(self, args):
@@ -53,6 +56,10 @@ class Deployment(Cloud):
                 self.build()
             elif (args.dep_command == 'clear'):
                 self.clear()
+            elif (args.dep_command == 'clean_build_tests'):
+                self.clean_build_debug_tests()
+            elif (args.dep_command == 'unit_test_debug_host'):
+                self.unit_test_debug_host()
             elif (args.dep_command == 'clean'):
                 self.clean()
             elif (args.dep_command == 'uncache'):
@@ -122,6 +129,43 @@ class Deployment(Cloud):
         self.log("remove build folders")
         self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/obj")
         self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/bin")
+
+    def clean_build_debug_tests(self):
+        self.log("build debug tests")
+        self.os_exec("rm -rf " + self.get_source_target_test_folder() + "/obj")
+        self.os_exec("rm -rf " + self.get_source_target_test_folder() + "/bin")
+        self.os_exec("dotnet build " + self.get_source_target_test_folder() + " -c Debug ", False)
+
+    def unit_test_debug_host(self):
+        self.os_exec("pkill dotnet")
+        # do the UNIX double-fork magic, see Stevens' "Advanced 
+        # Programming in the UNIX Environment" for details (ISBN 0201563177)
+        # https://stackoverflow.com/questions/6011235/run-a-program-from-
+        # python-and-have-it-continue-to-run-after-the-script-is-kille
+        try: 
+            pid = os.fork() 
+            if pid > 0:
+                # parent process, return and keep running
+                return
+        except OSError, e:
+            print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
+            sys.exit(1)
+        os.setsid()
+        # do stuff
+        my_env = os.environ.copy()
+        my_env["VSTEST_HOST_DEBUG"] = "1"
+        devnull = open(os.devnull, 'wb')
+        proc = Popen(["/usr/bin/dotnet", "exec", self.get_vtest_console_runtime_path(), 
+            self.get_source_target_test_runtime_path()], stdout=PIPE, env=my_env)
+        bite_this = re.compile("Process Id:+\s+(\d*), Name:+\sdotnet")
+        while proc.poll() is None:
+            out = proc.stdout.readline()
+            match = bite_this.search(out)
+            if match:
+                print match.group(1)
+                break
+        # all done
+        os._exit(os.EX_OK)
 
     def setup_git_for_user(self, user):
         self.log("setup git for user " + user)

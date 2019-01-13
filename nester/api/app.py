@@ -22,7 +22,7 @@ class App(Cloud):
 
     def new_copy(self, object):
         new_entity = App(self.auth) 
-    	new_entity.__dict__.update(object)
+        new_entity.__dict__.update(object)
         return new_entity
 
     def parse_command(self, subparsers):
@@ -33,6 +33,8 @@ class App(Cloud):
         allow_cmd = app_cmd_parsers.add_parser('allow', help='Get update permission to the app')
         allow_cmd.add_argument('-p', '--password', type=str, help='The password')
         app_cmd_parsers.add_parser('revoke', help='Revoke update permission to the app')
+        app_cmd_parsers.add_parser('clean_build_tests', help='Clean build unit tests')
+        app_cmd_parsers.add_parser('unit_test_debug_host', help='Spawn unit test debug')
 
     def exec_command(self, args):
         self.set_log(args.log)
@@ -72,14 +74,14 @@ class App(Cloud):
             print(e)
 
     def nest_enable_root(self):
-    	self.log("enable root to impersonate the nest owner")
+        self.log("enable root to impersonate the nest owner")
         self.os_exec("cp -r /home/"+ os.environ['NEST_CONTACT_ID'] + "/.[a-zA-Z0-9]* /root")
         self.os_exec("chown -R root:root /root/.ssh")
         self.os_exec("chmod 700 /root/.ssh")
         self.os_exec("chmod -R 600 /root/.ssh/*")
 
     def remove_owner(self):
-    	self.log("removing current user")
+        self.log("removing current user")
         self.os_exec("userdel --force --remove "+os.environ['NEST_CONTACT_ID'])
         self.os_exec("sed -i /"+os.environ['NEST_CONTACT_ID']+"/d /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("rm -rf /home/"+os.environ['NEST_CONTACT_ID'])
@@ -87,17 +89,19 @@ class App(Cloud):
         self.os_exec("groupdel tree")
 
     def create_owner(self):
-    	self.log("add tree group")
+        self.log("add tree group")
         self.os_exec("groupadd --gid 1008 tree")
-    	self.log("add current user")
+        self.log("add current user")
         self.os_exec("useradd --uid "+os.environ['NEST_CONTACT_ID']+" --create-home --gid 1008 "+os.environ['NEST_CONTACT_ID'])
         self.os_exec("touch /etc/sudoers.d/99-forest-sudoers")
-        self.os_exec("echo '"+os.environ['NEST_CONTACT_ID']+"	ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
+        self.os_exec("echo '"+os.environ['NEST_CONTACT_ID']+"   ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("mkdir /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
-        self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /var/app/.contact_key")
-        self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /var/app/.tree_key")
-    	self.os_exec("cp /var/app/.contact_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
-        self.os_exec("cp /var/app/.tree_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
+        #self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /var/app/.contact_key")
+        #self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /var/app/.tree_key")
+        self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
+        self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
+        #self.os_exec("cp /var/app/.contact_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
+        #self.os_exec("cp /var/app/.tree_key /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/known_hosts")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
         self.os_exec("ssh-keygen -f /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa -y > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa.pub")
         self.os_exec("cat /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa.pub > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/authorized_keys")
@@ -105,3 +109,4 @@ class App(Cloud):
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod 700 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("chmod -R 600 /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/*")
+        

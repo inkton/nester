@@ -31,7 +31,8 @@ class Deployment(Cloud):
         app_cmd_parsers = cmd_parser.add_subparsers(dest='dep_command', help='Deployment commands')
 
         app_cmd_parsers.add_parser('pull', help='Download the deployment')
-        app_cmd_parsers.add_parser('push', help='Publish the source and deploy')
+        app_cmd_parsers.add_parser('push', help='Push the source to the remote')
+        app_cmd_parsers.add_parser('deploy', help='Remote build and deploy')
         app_cmd_parsers.add_parser('restore', help='Restore the project')
         app_cmd_parsers.add_parser('clear', help='Clear the project')
         app_cmd_parsers.add_parser('clean', help='Clean the project')
@@ -50,6 +51,8 @@ class Deployment(Cloud):
                 self.pull()
             elif (args.dep_command == 'push'):
                 self.push()
+            elif (args.dep_command == 'deploy'):
+                self.deploy()
             elif (args.dep_command == 'restore'):
                 self.restore()
             elif (args.dep_command == 'build'):
@@ -109,6 +112,11 @@ class Deployment(Cloud):
             self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress /var/app/downtime -e 'ssh' nest:/var/app")
 
             self.os_exec(rsync_cmd + "--exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_target_folder() + "/ -e 'ssh' nest:" + self.get_source_target_folder() + "/")
+        except Exception as e:
+                print(e)
+
+    def deploy(self):
+        try:
             self.os_exec("ssh nest 'deploy'", False)
         except Exception as e:
                 print(e)

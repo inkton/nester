@@ -6,7 +6,7 @@
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 import errno, os, sys
-import argparse
+import argparse, json
 import re
 
 from datetime import datetime, date, time
@@ -39,6 +39,10 @@ class Deployment(Cloud):
         app_cmd_parsers.add_parser('build', help='Build the project')
         app_cmd_parsers.add_parser('clean_build_tests', help='Clean build unit tests')
         app_cmd_parsers.add_parser('unit_test_debug_host', help='Spawn unit test debug')
+        app_cmd_parsers.add_parser('restore_all', help='Restore all projects')
+        app_cmd_parsers.add_parser('release_build_all', help='Release build all')
+        app_cmd_parsers.add_parser('release_test_all', help='Release test all')
+        app_cmd_parsers.add_parser('release_upload_all', help='Release upload all')
         app_cmd_parsers.add_parser('uncache', help='Clear cache')
 
     def exec_command(self, args):
@@ -63,6 +67,14 @@ class Deployment(Cloud):
                 self.clean_build_debug_tests()
             elif (args.dep_command == 'unit_test_debug_host'):
                 self.unit_test_debug_host()
+            elif (args.dep_command == 'restore_all'):
+                self.restore_all()
+            elif (args.dep_command == 'release_build_all'):
+                self.release_build_all()
+            elif (args.dep_command == 'release_test_all'):
+                self.release_test_all()
+            elif (args.dep_command == 'release_upload_all'):
+                self.release_upload_all()
             elif (args.dep_command == 'clean'):
                 self.clean()
             elif (args.dep_command == 'uncache'):
@@ -174,6 +186,56 @@ class Deployment(Cloud):
                 break
         # all done
         os._exit(os.EX_OK)
+
+    def apply_all_projects(self, op, command, test_only):
+        self.log("restore all")
+        with open(self.get_app_folder() + "/settings.json") as settings_file:
+            settings = json.load(settings_file)            
+            machine = "app-" + settings["app"]["environment"]["NEST_TAG"]
+            target_folder = settings["app"]["environment"]["NEST_FOLDER_SOURCE"] + '/' + settings["app"]["environment"]["NEST_TAG_CAP"]
+            title = op + " the app " + settings["app"]["environment"]["NEST_TAG_CAP"]
+            print title
+            print '-' * len(title)
+            ssh_command = "ssh -q -o 'StrictHostKeyChecking no' "
+            if not test_only:
+                self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/src", False)
+            self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/test", False)
+            i = 0
+            while i < len(settings["workers"]):
+                machine = "worker-" + settings["workers"][i]["environment"]["NEST_TAG"]
+                target_folder = settings["workers"][i]["environment"]["NEST_FOLDER_SOURCE"] + '/' + settings["workers"][i]["environment"]["NEST_TAG_CAP"]
+                title = "\n" + op + " the worker " +settings["workers"][i]["environment"]["NEST_TAG_CAP"]
+                print title
+                print '-' * len(title)
+                if not test_only:
+                    self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/src", False)
+                self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/test", False)
+                i += 1
+
+    def restore_all(self):
+        self.log("restore all")
+        self.apply_all_projects("Restoring", "dotnet restore", False)
+
+    def release_build_all(self):
+        self.log("release build all")         
+        self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
+
+    def release_test_all(self):
+        self.log("release test all")         
+        self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
+
+    def release_upload_all(self):
+        self.log("release deploy all")
+        rsync = "/usr/bin/rsync -vzr --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress"
+        print "Uploading app assets"
+        print "--------------------"
+        self.os_exec(rsync + " /var/app/app.nest nest:/var/app", False)
+        self.os_exec(rsync + " /var/app/app.json nest:/var/app", False)
+        self.os_exec(rsync + " /var/app/nest nest:/var/app", False)
+        self.os_exec(rsync + " /var/app/downtime/ nest:/var/app/downtime/", False)
+        print "\nUploading the app source code"
+        print "-------------------------------"
+        self.os_exec(rsync + " /var/app/source/ nest:/var/app/source/", False)
 
     def setup_git_for_user(self, user):
         self.log("setup git for user " + user)

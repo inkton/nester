@@ -71,8 +71,8 @@ class Contact(Cloud):
 		os.environ['NEST_CONTACT_USER_ID'],
 		os.environ['NEST_APP_ID']), 
 			{ 'email' : email })
-	except Exception as e:
-            print(e)
+        except Exception as e:
+                print(e)
 
     def remove(self, id):
         try:
@@ -95,7 +95,7 @@ class Contact(Cloud):
             print(e)
 
     def load(self):
-	return self.load_by_key(str(self.id))
+	    return self.load_by_key(str(self.id))
 
     def save(self):
         return self.save_by_key(str(self.id))

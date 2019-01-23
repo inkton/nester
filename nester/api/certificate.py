@@ -43,11 +43,10 @@ class Certificate(Cloud):
         sub_cmd.add_argument('-y', '--type', choices=['free','custom'], required=True, help='Certificate type')
         sub_cmd.add_argument('-c', '--cert-chain-file', type=str, required=False, help='File containing certificate chain')
         sub_cmd.add_argument('-k', '--cert-key-file', type=str, required=False, help='File containing certificate key')
-        
-	sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove certiicate')
+
+        sub_cmd = app_cmd_parsers.add_parser('remove', help='Remove certiicate')
         sub_cmd.add_argument('-d', '--domain-tag', type=str, required=True, help='Tag of the domain')
         sub_cmd.add_argument('-t', '--tag', type=str, required=True, help='A certificate tag')
-        
         sub_cmd = app_cmd_parsers.add_parser('list', help='List all certificates')
         sub_cmd.add_argument('-d', '--domain-tag', type=str, required=True, help='Tag of the domain')
           
@@ -60,14 +59,14 @@ class Certificate(Cloud):
             self.log("handle cert command")
             cmd_handled = True
             if (args.cert_command == 'add'):
-               self.add(args.domain_tag, args.tag, args.type, 
-		args.cert_chain_file, args.cert_key_file)
+                self.add(args.domain_tag, args.tag, args.type, 
+		            args.cert_chain_file, args.cert_key_file)
             elif (args.cert_command == 'remove'):
-               self.remove(args.domain_tag, args.tag)
+                self.remove(args.domain_tag, args.tag)
             elif (args.cert_command == 'list'):
-               self.list(args.domain_tag)
+                self.list(args.domain_tag)
             elif (args.cert_command == 'clear'):
-	       self.clear_cache()
+	            self.clear_cache()
             else:
                 cmd_handled = False
             self.end_cmd()
@@ -75,9 +74,8 @@ class Certificate(Cloud):
  
     def get_parent_domain(self, domain_tag):
         domain = Domain(self.auth, domain_tag)
-	domain.cache_list("apps/{0}/domains".format(
-            os.environ['NEST_APP_ID']), 
-            None, 'tag')
+        domain.cache_list("apps/{0}/domains".format(
+            os.environ['NEST_APP_ID']), None, 'tag')
         if not domain.load():
             print "the domain does not exist"
             return None
@@ -107,44 +105,41 @@ class Certificate(Cloud):
                     return
  
             self.create("apps/{0}/domains/{1}/certificates".format(
-		os.environ['NEST_APP_ID'],
-		owned_by_obj.id 
-		), 
-		{
-		'tag' : tag, 
-		'type' : type,
-		'certificate_chain' : cert_chain,
-		'certificate_chain' : cert_key
-		}
-	    )
-
-	except Exception as e:
-            print(e)
+                os.environ['NEST_APP_ID'],
+                owned_by_obj.id 
+                ), 
+                    {
+                    'tag' : tag, 
+                    'type' : type,
+                    'certificate_chain' : cert_chain,
+                    'certificate_chain' : cert_key
+                    }
+                )
+        except Exception as e:
+                print(e)
 
     def remove(self, domain_tag, tag):
         try:
             owned_by_obj = self.get_parent_domain(domain_tag)
-	    if owned_by_obj is None:
-               return
+            if owned_by_obj is None:
+                return
 
             self.cache_list("apps/{0}/domains/{1}/certificates".format(
-		os.environ['NEST_APP_ID'],
-		owned_by_obj.id 
-		), None, 'tag')
+                os.environ['NEST_APP_ID'],
+                owned_by_obj.id 
+                ), None, 'tag')
 
-	    remove_obj = Certificate(self.auth, tag)
+            remove_obj = Certificate(self.auth, tag)
             if not remove_obj.load():
-               print "the domain certificate does not exist"
-               return
-
+                print "the domain certificate does not exist"
+                return
             if (self.confirm("Are you sure to remove the certificate " + tag +
-		" ?\n", default="no")) :
-		self.delete("apps/{0}/domains/{1}/certificates/{2}".format(
-		  os.environ['NEST_APP_ID'],
-		  owned_by_obj.id, remove_obj.id), {})
-
-	except Exception as e:
-            print(e)
+                " ?\n", default="no")) :
+                self.delete("apps/{0}/domains/{1}/certificates/{2}".format(
+                os.environ['NEST_APP_ID'],
+                owned_by_obj.id, remove_obj.id), {})
+        except Exception as e:
+                print(e)
 
     def list(self, domain_tag):
 	self.log("cert list")

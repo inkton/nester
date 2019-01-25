@@ -244,7 +244,11 @@ class Deployment(Cloud):
 
     def release_coverage_report(self):
         try:
-            self.os_exec("/root/.dotnet/tools/reportgenerator -reports:$NEST_FOLDER_SOURCE/*/*/coverage.cobertura.xml -targetdir:$NEST_FOLDER_PUBLISH/reports", False)
+            with open(self.get_app_folder() + "/settings.json") as settings_file:
+                settings = json.load(settings_file)            
+                machine = "app-" + settings["app"]["environment"]["NEST_TAG"]
+                command = "/root/.dotnet/tools/reportgenerator -reports:$NEST_FOLDER_SOURCE/*/*/coverage.cobertura.xml -targetdir:$NEST_FOLDER_PUBLISH/reports"
+                self.os_exec(self.remote_shell_cmd() + machine + " " + command, False)
         except Exception as e:
             print '-- Ended --'
 

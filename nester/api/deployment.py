@@ -243,7 +243,10 @@ class Deployment(Cloud):
             print '-- Ended --'
 
     def release_coverage_report(self):
-        self.os_exec("/root/.dotnet/tools/reportgenerator -reports:$NEST_FOLDER_SOURCE/*/*/coverage.cobertura.xml -targetdir:$NEST_FOLDER_PUBLISH/reports", False)
+        try:
+            self.os_exec("/root/.dotnet/tools/reportgenerator -reports:$NEST_FOLDER_SOURCE/*/*/coverage.cobertura.xml -targetdir:$NEST_FOLDER_PUBLISH/reports", False)
+        except Exception as e:
+            print '-- Ended --'
 
     def release_upload_all(self):
         try:

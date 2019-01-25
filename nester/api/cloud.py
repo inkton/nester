@@ -35,6 +35,12 @@ class Cloud(Thing):
     def get_url(self, uri):
         return self.protocol + self.host + self.base_uri + uri
 
+    def transfer_cmd(self, timeout=600):
+        return "rsync -vzr -q -o 'StrictHostKeyChecking no' --delete --exclude=.git --exclude=bin --exclude=obj --progress --timeout=" + str(timeout) + " " 
+
+    def remote_shell_cmd(self):
+        return "ssh -q -o 'StrictHostKeyChecking no' "
+
     def enable_logging(self):
         httplib.HTTPConnection.debuglevel = 1
         logging.basicConfig()
@@ -80,22 +86,22 @@ class Cloud(Thing):
         return self.get_data(response)
 
     def cache_list(self, url=None, filter=None, key='tag'):
-	if url is None:
+        if url is None:
             url = self.subject
-	if len(os.listdir(self.get_folder())):
-           return False
-	return self.query_list(url, filter, key)
+        if len(os.listdir(self.get_folder())):
+            return False
+        return self.query_list(url, filter, key)
 
     def query_list(self, url=None, filter=None, key='tag'):
-	if url is None:
+        if url is None:
             url = self.subject
         self.clear_cache()
         data = self.query(url, filter)
         list = data[self.subject]
-	for object in list:
+        for object in list:
             create_entity = self.new_copy(object)
             create_entity.save_by_key(str(eval('create_entity.%s' % key)))
-        return True
+            return True
 
     def get_data(self, response):
         if response.status_code == 401 :

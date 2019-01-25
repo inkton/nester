@@ -6,7 +6,7 @@
 ## -*- python -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-import errno, os, shutil, sys, logging
+import errno, os, shutil, sys, logging, shlex
 from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 from texttable import Texttable
@@ -169,16 +169,37 @@ class Thing(object):
         self.log(line_out);
         self.secure_workarea()
 
-    def os_exec(self, cmd, log=True):
-        if log:
-            proc = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-            self.log(cmd)
-            self.log("return code - " + str(proc.returncode))
-            self.log("std/err out - " + proc.stdout.read())	
-        else:
-            proc = Popen(cmd, shell=True, close_fds=True)
-        proc.communicate()
+#    def os_exec(self, cmd, silent=True):
+#        self.log("--------------------------------------")
+#        self.log(cmd)            
+#        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+#        proc.wait()
+#        (result, error) = proc.communicate()
+#        self.log(result)
+#        if not silent:
+#            print(result)
+#            if proc.returncode != 0:
+#                # an error happened!
+#                raise Exception()
+#        self.log("--------------------------------------")
+#        return proc.returncode
+
+    def os_exec(self, cmd, silent=True):
+        self.log("--------------------------------------")
+        self.log(cmd)            
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+        while True:
+            line = proc.stdout.readline()
+            if not line:
+                break
+            if not silent:
+                sys.stdout.write(line)
+            self.log(line)
         proc.wait()
+        if not silent and proc.returncode != 0:
+            # an error happened!
+            raise Exception()
+        self.log("--------------------------------------")
         return proc.returncode
 
     def remove_folder_content(self, folder):

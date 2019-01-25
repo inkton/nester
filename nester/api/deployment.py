@@ -40,8 +40,10 @@ class Deployment(Cloud):
         app_cmd_parsers.add_parser('clean_build_tests', help='Clean build unit tests')
         app_cmd_parsers.add_parser('unit_test_debug_host', help='Spawn unit test debug')
         app_cmd_parsers.add_parser('restore_all', help='Restore all projects')
+        app_cmd_parsers.add_parser('release_clean_all', help='Release clean all')
         app_cmd_parsers.add_parser('release_build_all', help='Release build all')
         app_cmd_parsers.add_parser('release_test_all', help='Release test all')
+        app_cmd_parsers.add_parser('release_coverage_report', help='Release produce report')
         app_cmd_parsers.add_parser('release_upload_all', help='Release upload all')
         app_cmd_parsers.add_parser('uncache', help='Clear cache')
 
@@ -69,10 +71,14 @@ class Deployment(Cloud):
                 self.unit_test_debug_host()
             elif (args.dep_command == 'restore_all'):
                 self.restore_all()
+            elif (args.dep_command == 'release_clean_all'):
+                self.release_clean_all()
             elif (args.dep_command == 'release_build_all'):
                 self.release_build_all()
             elif (args.dep_command == 'release_test_all'):
                 self.release_test_all()
+            elif (args.dep_command == 'release_coverage_report'):
+                self.release_coverage_report()
             elif (args.dep_command == 'release_upload_all'):
                 self.release_upload_all()
             elif (args.dep_command == 'clean'):
@@ -84,11 +90,11 @@ class Deployment(Cloud):
             self.end_cmd()
         return cmd_handled
 
-    def pull_project(self, rsync_cmd, folder, branch):
+    def pull_project(self, folder, branch):
         self.os_exec("rm -rf " + folder)
         self.os_exec("mkdir -p " + folder)
 
-        self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress -e 'ssh' nest:" + folder + "/ " + folder + "/")
+        self.os_exec(self.transfer_cmd() + "nest:" + folder + "/ " + folder + "/")
 
         self.os_exec("cd " + folder + " && git init ")
         self.os_exec("cd " + folder + " && git remote add origin nest:repository.git ")
@@ -97,18 +103,17 @@ class Deployment(Cloud):
 
     def pull(self):
         try:
-            rsync_cmd = "/usr/bin/rsync -avzr "
-            self.pull_project(rsync_cmd, self.get_source_target_folder(), self.get_source_target_git_branch())
+            self.pull_project(self.get_source_target_folder(), self.get_source_target_git_branch())
 
             if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
-                self.pull_project(rsync_cmd, self.get_source_shared_folder(), self.get_source_shared_git_branch())
+                self.pull_project(self.get_source_shared_folder(), self.get_source_shared_git_branch())
 
-                self.os_exec(rsync_cmd + " --timeout=600 --progress -e 'ssh' nest:/var/app/log /var/app")
-                self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source")
-                self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.nest /var/app")
-                self.os_exec(rsync_cmd + " --timeout=60 --progress -e 'ssh' nest:/var/app/app.json /var/app")
-                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/nest /var/app")
-                self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress -e 'ssh' nest:/var/app/downtime /var/app")
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/log /var/app", False)
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source", False)
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/app.nest /var/app", False)
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/app.json /var/app", False)
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/nest /var/app", False)
+                self.os_exec(self.transfer_cmd() + "nest:/var/app/downtime /var/app", False)
 
             self.setup_git()
         except Exception as e:
@@ -116,14 +121,12 @@ class Deployment(Cloud):
 
     def push(self):
         try:
-            rsync_cmd = "/usr/bin/rsync -avzr "
-            self.os_exec(rsync_cmd + " --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_shared_folder() + "/ -e 'ssh' nest:" + self.get_source_shared_folder() + "/ ")
-            self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.nest -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --timeout=600 --progress /var/app/app.json -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress /var/app/nest -e 'ssh' nest:/var/app")
-            self.os_exec(rsync_cmd + " --exclude=nest/.git --timeout=600 --progress /var/app/downtime -e 'ssh' nest:/var/app")
-
-            self.os_exec(rsync_cmd + "--exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress " + self.get_source_target_folder() + "/ -e 'ssh' nest:" + self.get_source_target_folder() + "/")
+            self.os_exec(self.transfer_cmd() + "/var/app/app.nest nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + "/var/app/app.json nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + "/var/app/nest nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + "/var/app/downtime nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + self.get_source_shared_folder() + "/  nest:" + self.get_source_shared_folder() + "/", False)
+            self.os_exec(self.transfer_cmd() + self.get_source_target_folder() + "/ nest:" + self.get_source_target_folder() + "/", False)
         except Exception as e:
                 print(e)
 
@@ -143,12 +146,12 @@ class Deployment(Cloud):
 
     def clean(self):
         self.log("clean")
-        self.os_exec("dotnet clean " + self.get_source_target_source_folder())
+        self.os_exec("dotnet clean " + self.get_source_target_source_folder(), False)
 
     def clear(self):
         self.log("remove build folders")
-        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/obj")
-        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/bin")
+        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/obj", False)
+        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/bin", False)
 
     def clean_build_debug_tests(self):
         self.log("build debug tests")
@@ -196,10 +199,9 @@ class Deployment(Cloud):
             title = op + " the app " + settings["app"]["environment"]["NEST_TAG_CAP"]
             print title
             print '-' * len(title)
-            ssh_command = "ssh -q -o 'StrictHostKeyChecking no' "
             if not test_only:
-                self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/src", False)
-            self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/test", False)
+                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False)
+            self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False)
             i = 0
             while i < len(settings["workers"]):
                 machine = "worker-" + settings["workers"][i]["environment"]["NEST_TAG"]
@@ -208,34 +210,55 @@ class Deployment(Cloud):
                 print title
                 print '-' * len(title)
                 if not test_only:
-                    self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/src", False)
-                self.os_exec(ssh_command + machine + " " + command + " " + target_folder +"/test", False)
+                    self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False)
+                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False)
                 i += 1
 
     def restore_all(self):
-        self.log("restore all")
-        self.apply_all_projects("Restoring", "dotnet restore", False)
+        try:        
+            self.log("restore all")
+            self.apply_all_projects("Restoring", "dotnet restore", False)
+        except Exception as e:
+            print '-- Ended --'
 
     def release_build_all(self):
-        self.log("release build all")         
-        self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
+        try:
+            self.log("release build all")
+            self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
+        except Exception as e:
+            print '-- Ended --'
+
+    def release_clean_all(self):
+        try:
+            self.log("release clean all")
+            self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False)
+        except Exception as e:
+            print '-- Ended --'
 
     def release_test_all(self):
-        self.log("release test all")         
-        self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
+        try:
+            self.log("release test all")
+            self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
+        except Exception as e:
+            print '-- Ended --'
+
+    def release_coverage_report(self):
+        self.os_exec("/root/.dotnet/tools/reportgenerator -reports:$NEST_FOLDER_SOURCE/*/*/coverage.cobertura.xml -targetdir:$NEST_FOLDER_PUBLISH/reports", False)
 
     def release_upload_all(self):
-        self.log("release deploy all")
-        rsync = "/usr/bin/rsync -vzr --exclude=.git --exclude=bin --exclude=obj --timeout=600 --progress"
-        print "Uploading app assets"
-        print "--------------------"
-        self.os_exec(rsync + " /var/app/app.nest nest:/var/app", False)
-        self.os_exec(rsync + " /var/app/app.json nest:/var/app", False)
-        self.os_exec(rsync + " /var/app/nest nest:/var/app", False)
-        self.os_exec(rsync + " /var/app/downtime/ nest:/var/app/downtime/", False)
-        print "\nUploading the app source code"
-        print "-------------------------------"
-        self.os_exec(rsync + " /var/app/source/ nest:/var/app/source/", False)
+        try:
+            self.log("release deploy all")
+            print "Uploading app assets"
+            print "--------------------"
+            self.os_exec(self.transfer_cmd() + " /var/app/app.nest nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + " /var/app/app.json nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + " /var/app/nest nest:/var/app", False)
+            self.os_exec(self.transfer_cmd() + " /var/app/downtime/ nest:/var/app/downtime/", False)
+            print "\nUploading the app source code"
+            print "-------------------------------"
+            self.os_exec(rsync + " /var/app/source/ nest:/var/app/source/", False)
+        except Exception as e:
+            print '-- Ended --'
 
     def setup_git_for_user(self, user):
         self.log("setup git for user " + user)

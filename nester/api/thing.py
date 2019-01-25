@@ -184,7 +184,7 @@ class Thing(object):
 #        self.log("--------------------------------------")
 #        return proc.returncode
 
-    def os_exec(self, cmd, silent=True):
+    def os_exec(self, cmd, silent=True, throwOnError=False):
         self.log("--------------------------------------")
         self.log(cmd)            
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -196,7 +196,7 @@ class Thing(object):
                 sys.stdout.write(line)
             self.log(line)
         proc.wait()
-        if not silent and proc.returncode != 0:
+        if throwOnError and proc.returncode != 0:
             # an error happened!
             raise Exception()
         self.log("--------------------------------------")

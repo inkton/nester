@@ -99,7 +99,7 @@ class Deployment(Cloud):
         self.os_exec("cd " + folder + " && git init ")
         self.os_exec("cd " + folder + " && git remote add origin nest:repository.git ")
         self.os_exec("cd " + folder + " && git fetch ")
-        self.os_exec("cd " + folder + " && git checkout origin/" + branch + " -ft")
+        #self.os_exec("cd " + folder + " && git checkout origin/" + branch + " -ft")
 
     def pull(self):
         try:
@@ -200,8 +200,8 @@ class Deployment(Cloud):
             print title
             print '-' * len(title)
             if not test_only:
-                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False)
-            self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False)
+                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False, True)
+            self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False, True)
             i = 0
             while i < len(settings["workers"]):
                 machine = "worker-" + settings["workers"][i]["environment"]["NEST_TAG"]
@@ -210,35 +210,35 @@ class Deployment(Cloud):
                 print title
                 print '-' * len(title)
                 if not test_only:
-                    self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False)
-                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False)
+                    self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/src", False, True)
+                self.os_exec(self.remote_shell_cmd() + machine + " " + command + " " + target_folder +"/test", False, True)
                 i += 1
 
     def restore_all(self):
         try:        
             self.log("restore all")
-            self.apply_all_projects("Restoring", "dotnet restore", False)
+            self.apply_all_projects("Restoring", "dotnet restore", False, True)
         except Exception as e:
             print '-- Ended --'
 
     def release_build_all(self):
         try:
             self.log("release build all")
-            self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
+            self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False, True)
         except Exception as e:
             print '-- Ended --'
 
     def release_clean_all(self):
         try:
             self.log("release clean all")
-            self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False)
+            self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False, True)
         except Exception as e:
             print '-- Ended --'
 
     def release_test_all(self):
         try:
             self.log("release test all")
-            self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
+            self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), False, True)
         except Exception as e:
             print '-- Ended --'
 
@@ -257,13 +257,13 @@ class Deployment(Cloud):
             self.log("release deploy all")
             print "Uploading app assets"
             print "--------------------"
-            self.os_exec(self.transfer_cmd() + " /var/app/app.nest nest:/var/app", False)
-            self.os_exec(self.transfer_cmd() + " /var/app/app.json nest:/var/app", False)
-            self.os_exec(self.transfer_cmd() + " /var/app/nest nest:/var/app", False)
-            self.os_exec(self.transfer_cmd() + " /var/app/downtime/ nest:/var/app/downtime/", False)
+            self.os_exec(self.transfer_cmd() + " /var/app/app.nest nest:/var/app", False, True)
+            self.os_exec(self.transfer_cmd() + " /var/app/app.json nest:/var/app", False, True)
+            self.os_exec(self.transfer_cmd() + " /var/app/nest nest:/var/app", False, True)
+            self.os_exec(self.transfer_cmd() + " /var/app/downtime/ nest:/var/app/downtime/", False, True)
             print "\nUploading the app source code"
             print "------------------------------"
-            self.os_exec(self.transfer_cmd() + " /var/app/source/ nest:/var/app/source/", False)
+            self.os_exec(self.transfer_cmd() + " /var/app/source/ nest:/var/app/source/", False, True)
         except Exception as e:
             print '-- Ended --'
 

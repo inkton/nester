@@ -255,8 +255,8 @@ class Deployment(Cloud):
             self.os_exec(self.transfer_cmd() + " /var/app/nest nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + " /var/app/downtime/ nest:/var/app/downtime/", False)
             print "\nUploading the app source code"
-            print "-------------------------------"
-            self.os_exec(rsync + " /var/app/source/ nest:/var/app/source/", False)
+            print "------------------------------"
+            self.os_exec(self.transfer_cmd() + " /var/app/source/ nest:/var/app/source/", False)
         except Exception as e:
             print '-- Ended --'
 

@@ -36,7 +36,7 @@ class Cloud(Thing):
         return self.protocol + self.host + self.base_uri + uri
 
     def transfer_cmd(self, timeout=600):
-        return "rsync -vzr -q -o 'StrictHostKeyChecking no' --delete --exclude=.git --exclude=bin --exclude=obj --progress --timeout=" + str(timeout) + " " 
+        return "rsync -vzr --delete --exclude=.git --exclude=bin --exclude=obj --progress --timeout=" + str(timeout) + " "      
 
     def remote_shell_cmd(self):
         return "ssh -q -o 'StrictHostKeyChecking no' "

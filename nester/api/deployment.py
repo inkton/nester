@@ -99,7 +99,6 @@ class Deployment(Cloud):
         self.os_exec("cd " + folder + " && git init ")
         self.os_exec("cd " + folder + " && git remote add origin nest:repository.git ")
         self.os_exec("cd " + folder + " && git fetch ")
-        #self.os_exec("cd " + folder + " && git checkout origin/" + branch + " -ft")
 
     def pull(self):
         try:
@@ -203,7 +202,7 @@ class Deployment(Cloud):
         self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
 
     def apply_all_projects(self, op, command, test_only):
-        self.log("restore all")
+        self.log("restore all with settings " + self.get_app_folder() + "/settings.json")
         with open(self.get_app_folder() + "/settings.json") as settings_file:
             settings = json.load(settings_file)            
             machine = "app-" + settings["app"]["environment"]["NEST_TAG"]
@@ -229,7 +228,7 @@ class Deployment(Cloud):
     def restore_all(self):
         try:        
             self.log("restore all")
-            self.apply_all_projects("Restoring", "dotnet restore", False, True)
+            self.apply_all_projects("Restoring", "dotnet restore", False)
         except Exception as e:
             print '-- Ended --'
             sys.exit(-1)
@@ -237,7 +236,7 @@ class Deployment(Cloud):
     def release_build_all(self):
         try:
             self.log("release build all")
-            self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False, True)
+            self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
         except Exception as e:
             print '-- Ended --'
             sys.exit(-1)
@@ -245,7 +244,7 @@ class Deployment(Cloud):
     def release_clean_all(self):
         try:
             self.log("release clean all")
-            self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False, True)
+            self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False)
         except Exception as e:
             print '-- Ended --'
             sys.exit(-1)
@@ -253,7 +252,7 @@ class Deployment(Cloud):
     def release_test_all(self):
         try:
             self.log("release test all")
-            self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), False, True)
+            self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
         except Exception as e:
             print '-- Ended --'
             sys.exit(-1)

@@ -128,13 +128,13 @@ class Deployment(Cloud):
             self.os_exec(self.transfer_cmd() + self.get_source_shared_folder() + "/  nest:" + self.get_source_shared_folder() + "/", False)
             self.os_exec(self.transfer_cmd() + self.get_source_target_folder() + "/ nest:" + self.get_source_target_folder() + "/", False)
         except Exception as e:
-                print(e)
+            print(e)
 
     def deploy(self):
         try:
             self.os_exec("ssh nest 'deploy'", False)
         except Exception as e:
-                print(e)
+            print(e)
 
     def restore(self):
         self.log("test restore")
@@ -190,6 +190,18 @@ class Deployment(Cloud):
         # all done
         os._exit(os.EX_OK)
 
+    def setup_git_for_user(self, user):
+        self.log("setup git for user " + user)
+        git_config = "sudo su - "+ user +" -c \"git config --file " + self.get_source_target_folder() + "/.git/config "
+        self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
+        self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
+        self.os_exec(git_config + " core.autocrlf false\"")
+        self.os_exec(git_config + " push.default simple\"")
+
+    def setup_git(self):
+        self.log("setup git")
+        self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
+
     def apply_all_projects(self, op, command, test_only):
         self.log("restore all")
         with open(self.get_app_folder() + "/settings.json") as settings_file:
@@ -220,13 +232,15 @@ class Deployment(Cloud):
             self.apply_all_projects("Restoring", "dotnet restore", False)
         except Exception as e:
             print '-- Ended --'
-
+            sys.exit(-1)
+            
     def release_build_all(self):
         try:
             self.log("release build all")
             self.apply_all_projects("Restoring", "dotnet build --configuration Release --output " + self.get_publish_folder(), False)
         except Exception as e:
             print '-- Ended --'
+            sys.exit(-1)
 
     def release_clean_all(self):
         try:
@@ -234,6 +248,7 @@ class Deployment(Cloud):
             self.apply_all_projects("Clean", "dotnet clean --configuration Release ", False)
         except Exception as e:
             print '-- Ended --'
+            sys.exit(-1)
 
     def release_test_all(self):
         try:
@@ -241,6 +256,7 @@ class Deployment(Cloud):
             self.apply_all_projects("Testing", "dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release --output " + self.get_publish_folder(), True)
         except Exception as e:
             print '-- Ended --'
+            sys.exit(-1)
 
     def release_coverage_report(self):
         try:
@@ -251,6 +267,7 @@ class Deployment(Cloud):
                 self.os_exec(self.remote_shell_cmd() + machine + " " + command, False)
         except Exception as e:
             print '-- Ended --'
+            sys.exit(-1)
 
     def release_upload_all(self):
         try:
@@ -266,15 +283,4 @@ class Deployment(Cloud):
             self.os_exec(self.transfer_cmd() + " /var/app/source/ nest:/var/app/source/", False)
         except Exception as e:
             print '-- Ended --'
-
-    def setup_git_for_user(self, user):
-        self.log("setup git for user " + user)
-        git_config = "sudo su - "+ user +" -c \"git config --file " + self.get_source_target_folder() + "/.git/config "
-        self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
-        self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
-        self.os_exec(git_config + " core.autocrlf false\"")
-        self.os_exec(git_config + " push.default simple\"")
-
-    def setup_git(self):
-        self.log("setup git")
-        self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
+            sys.exit(-1)

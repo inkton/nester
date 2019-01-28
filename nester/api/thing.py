@@ -212,7 +212,10 @@ class Thing(object):
     def secure_workarea(self):
         self.log("secure workarea")
         self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
+        # this blanket permission change needs review
+        # the .contact key needs 0700 sor ssh. 
         self.os_exec("chmod -R 755 /var/app ")
+        self.os_exec("chmod 700 /var/app/.contact_key")
 
     # from http://stackoverflow.com/questions/3041986/python-command-line-yes-no-input - thanks
     def confirm(self, question, default="yes"):

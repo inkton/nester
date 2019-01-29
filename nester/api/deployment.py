@@ -104,6 +104,8 @@ class Deployment(Cloud):
             self.os_exec(self.transfer_cmd() + "nest:/var/app/app.json /var/app", False)
             self.os_exec(self.transfer_cmd() + "nest:/var/app/nest /var/app", False)
             self.os_exec(self.transfer_cmd() + "nest:/var/app/downtime /var/app", False)
+
+            self.setup_git()
         except Exception as e:
             print(e)
 
@@ -180,17 +182,22 @@ class Deployment(Cloud):
         # all done
         os._exit(os.EX_OK)
 
-    def setup_git_for_user(self, user):
-        self.log("setup git for user " + user)
-        git_config = "sudo su - "+ user +" -c \"git config --file " + self.get_source_target_folder() + "/.git/config "
-        self.os_exec(git_config + " user.email "+os.environ['NEST_CONTACT_EMAIL']+ "\"" )
-        self.os_exec(git_config + " user.name "+os.environ['NEST_CONTACT_ID']+ "\"" )
-        self.os_exec(git_config + " core.autocrlf false\"")
-        self.os_exec(git_config + " push.default simple\"")
+    def setup_git_folder(self, folder):
+        self.log("setup git folder " + folder)
+        git_command = "git -C " + folder + " "        
+        self.os_exec(git_command + "init")
+        self.os_exec(git_command + "config --file "+ folder + "/.git/config user.email "+os.environ['NEST_CONTACT_EMAIL'] )
+        self.os_exec(git_command + "config --file "+ folder + "/.git/config user.name "+os.environ['NEST_CONTACT_ID'] )        
+        self.os_exec(git_command + "remote rm origin ")
+        self.os_exec(git_command + "remote add origin nest:repository.git ")
+        self.os_exec(git_command + "fetch origin --tags")
 
     def setup_git(self):
         self.log("setup git")
-        self.setup_git_for_user(os.environ['NEST_CONTACT_ID'])
+        self.os_exec("git config --global user.email "+os.environ['NEST_CONTACT_EMAIL'] )
+        self.os_exec("git config --global user.name "+os.environ['NEST_CONTACT_ID'] )        
+        self.setup_git_folder(self.get_source_shared_folder())
+        self.setup_git_folder(self.get_source_target_folder())
 
     def apply_all_projects(self, op, command, test_only):
         self.log("restore all with settings " + self.get_app_folder() + "/settings.json")

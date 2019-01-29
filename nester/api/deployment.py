@@ -92,11 +92,13 @@ class Deployment(Cloud):
 
     def pull(self):
         try:
+            self.os_exec("mkdir " + self.get_source_folder())
+            
             self.os_exec(self.transfer_cmd() + "nest:" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
             self.os_exec(self.transfer_cmd() + "nest:" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/")
 
             self.os_exec(self.transfer_cmd() + "nest:/var/app/log /var/app", False)
-            
+
             self.os_exec(self.transfer_cmd() + "nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source", False)
             self.os_exec(self.transfer_cmd() + "nest:/var/app/app.nest /var/app", False)
             self.os_exec(self.transfer_cmd() + "nest:/var/app/app.json /var/app", False)

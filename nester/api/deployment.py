@@ -90,40 +90,29 @@ class Deployment(Cloud):
             self.end_cmd()
         return cmd_handled
 
-    def pull_project(self, folder, branch):
-        self.os_exec("rm -rf " + folder)
-        self.os_exec("mkdir -p " + folder)
-
-        self.os_exec(self.transfer_cmd() + "nest:" + folder + "/ " + folder + "/")
-
-        self.os_exec("cd " + folder + " && git init ")
-        self.os_exec("cd " + folder + " && git remote add origin nest:repository.git ")
-        self.os_exec("cd " + folder + " && git fetch ")
-
     def pull(self):
         try:
-            self.pull_project(self.get_source_target_folder(), self.get_source_target_git_branch())
+            self.os_exec(self.transfer_cmd() + "nest:" + self.get_source_target_folder() + "/ " + self.get_source_target_folder() + "/")
+            self.os_exec(self.transfer_cmd() + "nest:" + self.get_source_shared_folder() + "/ " + self.get_source_shared_folder() + "/")
 
-            if self.get_platform_tag() == "api" or self.get_platform_tag() == "mvc":
-                self.pull_project(self.get_source_shared_folder(), self.get_source_shared_git_branch())
-
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/log /var/app", False)
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source", False)
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/app.nest /var/app", False)
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/app.json /var/app", False)
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/nest /var/app", False)
-                self.os_exec(self.transfer_cmd() + "nest:/var/app/downtime /var/app", False)
-
-            self.setup_git()
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/log /var/app", False)
+            
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln /var/app/source", False)
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/app.nest /var/app", False)
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/app.json /var/app", False)
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/nest /var/app", False)
+            self.os_exec(self.transfer_cmd() + "nest:/var/app/downtime /var/app", False)
         except Exception as e:
-                print(e)
+            print(e)
 
     def push(self):
         try:
+            self.os_exec(self.transfer_cmd() + "/var/app/source nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln", False)
             self.os_exec(self.transfer_cmd() + "/var/app/app.nest nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + "/var/app/app.json nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + "/var/app/nest nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + "/var/app/downtime nest:/var/app", False)
+
             self.os_exec(self.transfer_cmd() + self.get_source_shared_folder() + "/  nest:" + self.get_source_shared_folder() + "/", False)
             self.os_exec(self.transfer_cmd() + self.get_source_target_folder() + "/ nest:" + self.get_source_target_folder() + "/", False)
         except Exception as e:

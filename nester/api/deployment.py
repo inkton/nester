@@ -111,7 +111,7 @@ class Deployment(Cloud):
 
     def push(self):
         try:
-            self.os_exec(self.transfer_cmd() + "/var/app/source nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln", False)
+            self.os_exec(self.transfer_cmd() + "/var/app/source/" + self.get_app_tag_capitalized() + ".sln nest:/var/app/source/" + self.get_app_tag_capitalized() + ".sln", False)
             self.os_exec(self.transfer_cmd() + "/var/app/app.nest nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + "/var/app/app.json nest:/var/app", False)
             self.os_exec(self.transfer_cmd() + "/var/app/nest nest:/var/app", False)
@@ -142,13 +142,13 @@ class Deployment(Cloud):
 
     def clear(self):
         self.log("remove build folders")
-        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/obj", False)
-        self.os_exec("rm -rf " + self.get_source_target_source_folder() + "/bin", False)
+        self.os_exec_shell("rm -rf " + self.get_source_target_source_folder() + "/obj", False)
+        self.os_exec_shell("rm -rf " + self.get_source_target_source_folder() + "/bin", False)
 
     def clean_build_debug_tests(self):
         self.log("build debug tests")
-        self.os_exec("rm -rf " + self.get_source_target_test_folder() + "/obj")
-        self.os_exec("rm -rf " + self.get_source_target_test_folder() + "/bin")
+        self.os_exec_shell("rm -rf " + self.get_source_target_test_folder() + "/obj")
+        self.os_exec_shell("rm -rf " + self.get_source_target_test_folder() + "/bin")
         self.os_exec("dotnet build " + self.get_source_target_test_folder() + " -c Debug ", False)
 
     def unit_test_debug_host(self):

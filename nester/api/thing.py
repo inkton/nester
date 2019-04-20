@@ -203,15 +203,34 @@ class Thing(object):
 #        self.log("--------------------------------------")
 #        return proc.returncode
 
+    def os_exec_shell(self, cmd, silent=True, throwOnError=False):
+        self.log("--------------------------------------")
+        self.log(cmd) 
+        if not silent:
+            out = Popen(cmd, shell=True, stdout=PIPE).stdout.read()
+            print out
+        else:
+            if self.logfile is not None:
+                out = Popen(cmd, shell=True, stdout=PIPE).stdout.read()
+                self.log(out)
+            else:
+                Popen(cmd, shell=True)
+        self.log("--------------------------------------")
+
     def os_exec(self, cmd, silent=True, throwOnError=False):
         self.log("--------------------------------------")
         self.log(cmd) 
         if not silent:
-            pexpect.run(cmd, logfile=sys.stdout)
+            out = pexpect.run(cmd, logfile=sys.stdout)
+            print out
         else:
-            outfile = open(self.logfile, 'a');
-            pexpect.run(cmd, logfile=outfile)
-            outfile.close()
+            if self.logfile is not None:
+                outfile = open(self.logfile, 'a');
+                out = pexpect.run(cmd, logfile=outfile)            
+                outfile.close()
+                self.log(out)
+            else:
+                pexpect.run(cmd)
         self.log("--------------------------------------")
 
     def remove_folder_content(self, folder):
@@ -225,8 +244,8 @@ class Thing(object):
         self.log("secure workarea")
         # this blanket permission change needs review
         # the .contact key needs 0700 sor ssh. 
-        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
-        self.os_exec("chmod -R 755 /var/app ")
+        self.os_exec("chown "+os.environ['NEST_CONTACT_ID']+":tree -R /var/app ")
+        self.os_exec("chmod 755 -R /var/app ")
         self.os_exec("chmod 700 /var/app/.contact_key")
 
     # from http://stackoverflow.com/questions/3041986/python-command-line-yes-no-input - thanks

@@ -11,6 +11,7 @@ from datetime import datetime, date, time
 from subprocess import Popen, PIPE, STDOUT
 from texttable import Texttable
 import argparse, abc, jsonpickle
+import pexpect
 
 class FailedValidation(Exception):
    def __init__(self, value):
@@ -184,23 +185,34 @@ class Thing(object):
 #        self.log("--------------------------------------")
 #        return proc.returncode
 
+#    def os_exec(self, cmd, silent=True, throwOnError=False):
+#        self.log("--------------------------------------")
+#        self.log(cmd)            
+#        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+#        while True:
+#            line = proc.stdout.readline()
+#            if not line:
+#                break
+#            if not silent:
+#                sys.stdout.write(line)
+#            self.log(line)
+#        proc.wait()
+#        if throwOnError and proc.returncode != 0:
+#            # an error happened!
+#            raise Exception()
+#        self.log("--------------------------------------")
+#        return proc.returncode
+
     def os_exec(self, cmd, silent=True, throwOnError=False):
         self.log("--------------------------------------")
-        self.log(cmd)            
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
-        while True:
-            line = proc.stdout.readline()
-            if not line:
-                break
-            if not silent:
-                sys.stdout.write(line)
-            self.log(line)
-        proc.wait()
-        if throwOnError and proc.returncode != 0:
-            # an error happened!
-            raise Exception()
+        self.log(cmd) 
+        if not silent:
+            pexpect.run(cmd, logfile=sys.stdout)
+        else:
+            outfile = open(self.logfile, 'a');
+            pexpect.run(cmd, logfile=outfile)
+            outfile.close()
         self.log("--------------------------------------")
-        return proc.returncode
 
     def remove_folder_content(self, folder):
         for the_file in os.listdir(folder):
@@ -211,9 +223,9 @@ class Thing(object):
 
     def secure_workarea(self):
         self.log("secure workarea")
-        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
         # this blanket permission change needs review
         # the .contact key needs 0700 sor ssh. 
+        self.os_exec("chown -R "+os.environ['NEST_CONTACT_ID']+":tree /var/app ")
         self.os_exec("chmod -R 755 /var/app ")
         self.os_exec("chmod 700 /var/app/.contact_key")
 

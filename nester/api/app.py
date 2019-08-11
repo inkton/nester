@@ -99,6 +99,8 @@ class App(Cloud):
         self.os_exec_shell("echo '"+os.environ['NEST_CONTACT_ID']+"   ALL=(ALL) NOPASSWD: ALL'  > /etc/sudoers.d/99-forest-sudoers")
         self.os_exec("rm -rf /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
         self.os_exec("mkdir /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh")
+        self.os_exec("rm -rf ~/.ssh")
+        self.os_exec("mkdir ~/.ssh")
         #self.os_exec("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /var/app/.contact_key")
         #self.os_exec("echo "+os.environ['NEST_TREE_KEY']+" | base64 --decode > /var/app/.tree_key")
         self.os_exec_shell("echo "+os.environ['NEST_CONTACT_KEY']+" | base64 --decode > /home/"+os.environ['NEST_CONTACT_ID']+"/.ssh/id_rsa")
